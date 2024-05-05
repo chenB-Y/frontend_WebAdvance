@@ -1,15 +1,30 @@
-import { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FieldValues, useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+const schema = z.object({
+  id: z.string().min(5, 'name must contain at least 5 letters').max(10),
+  name: z.string().nonempty('Name is required'),
+  age: z.number().min(18, 'you must be at least 18 years old'),
+});
+
+type FormData = z.infer<typeof schema>;
 
 function StudentForm() {
-  const [name, setName] = useState('');
-  const [age, setAge] = useState(0);
-  const [id, setId] = useState('');
-  const onsubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('ID:' + id + ' Name:' + name + ' Age:' + age);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  });
+
+  const onSubmit = (data: FieldValues) => {
+    console.log('on submit', data);
   };
+
   return (
-    <form className="m-3" onSubmit={onsubmit}>
+    <form className="m-3" onSubmit={handleSubmit(onSubmit)}>
       <div className="mb-3">
         <label htmlFor="id" className="form-label">
           ID:
@@ -17,10 +32,10 @@ function StudentForm() {
         <input
           type="text"
           id="id"
-          name="id"
+          {...register('id', { required: true, minLength: 5, maxLength: 10 })}
           className="form-control"
-          onChange={(eve) => setId(eve.target.value)}
         />
+        {errors.id && <div className="text-danger">{errors.id.message}</div>}
       </div>
       <div className="mb-3">
         <label htmlFor="name" className="form-label">
@@ -29,22 +44,24 @@ function StudentForm() {
         <input
           type="text"
           id="name"
-          name="name"
+          {...register('name', { required: true })}
           className="form-control"
-          onChange={(eve) => setName(eve.target.value)}
         />
+        {errors.name && (
+          <div className="text-danger">{errors.name.message}</div>
+        )}
       </div>
       <div className="mb-3">
         <label htmlFor="age" className="form-label">
-          age:
+          Age:
         </label>
         <input
           type="number"
           id="age"
-          name="age"
+          {...register('age', { required: true, min: 18 })}
           className="form-control"
-          onChange={(eve) => setAge(Number(eve.target.value))}
         />
+        {errors.age && <div className="text-danger">{errors.age.message}</div>}
       </div>
       <button type="submit" className="btn btn-primary">
         Submit
