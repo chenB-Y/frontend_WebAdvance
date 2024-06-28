@@ -1,9 +1,14 @@
-import StudentList from './StudentList';
+import LoginForm from './components/LoginForm';
+// import RegisterForm from './components/RegisterForm';
+// // import StudentForm from './components/StudentForm';
+// import StudentList from './components/StudentList';
 function App() {
   console.log('App');
   return (
     <div>
-      <StudentList />
+      {/* <StudentList />
+      <RegisterForm /> */}
+      <LoginForm />
     </div>
   );
 }
