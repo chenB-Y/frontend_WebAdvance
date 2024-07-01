@@ -24,6 +24,9 @@ const LoginForm = () => {
       const accessToken = response.data.accessToken; // Assuming accessToken is received from server
       console.log('Response Data: ', response.data);
       localStorage.setItem('accessToken', accessToken);
+      const refreshToken = response.data.refreshToken; // Assuming accessToken is received from server
+      console.log('Response Data: ', response.data);
+      localStorage.setItem('refreshToken', refreshToken);
       if (response.status === 200) {
         navigate('/students');
       }

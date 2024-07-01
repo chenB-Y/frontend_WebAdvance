@@ -4,8 +4,12 @@ import { uploadPhoto } from '../services/file-service';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faImage } from '@fortawesome/free-solid-svg-icons';
 import avatar from '../assets/avatar.jpeg';
+import { googleSignin } from '../services/user-services';
+import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
+import { useNavigate } from 'react-router-dom';
 
 const RegisterForm = () => {
+  const navigate = useNavigate();
   const [imgSrc, setImgSrc] = useState<File>();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState('');
@@ -51,6 +55,29 @@ const RegisterForm = () => {
     }
   };
 
+  const onGoogleLoginSuccess = async (
+    credentialResponse: CredentialResponse
+  ) => {
+    try {
+      const res = await googleSignin(credentialResponse);
+      const accessToken = res?.accessToken; // Use optional chaining to safely access accessToken
+
+      if (accessToken) {
+        localStorage.setItem('accessToken', accessToken);
+        console.log(res);
+        navigate('/students');
+      } else {
+        throw new Error('Access token is undefined');
+      }
+    } catch (error) {
+      console.error('Google sign-in failed:', error);
+      // Optionally, show an error message to the user
+    }
+  };
+
+  const onGoogleLoginFailure = () => {
+    console.log('Google login failed');
+  };
   return (
     <div className="container mt-5">
       <div className="row justify-content-center">
@@ -122,6 +149,10 @@ const RegisterForm = () => {
               {successMessage && (
                 <p className="text-success mt-3">{successMessage}</p>
               )}
+              <GoogleLogin
+                onSuccess={onGoogleLoginSuccess}
+                onError={onGoogleLoginFailure}
+              />
             </div>
           </div>
         </div>
