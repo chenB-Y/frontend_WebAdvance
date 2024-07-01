@@ -1,0 +1,25 @@
+header nav {
+  display: flex;
+  gap: 16px;
+  justify-content: end;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+header nav h1 {
+  margin-right: auto;
+  border-bottom: 3px solid #939fe2;
+}
+
+header nav a {
+  color: #0a22aa;
+  text-decoration: none;
+  padding: 6px;
+  border-radius: 4px;
+}
+
+header nav a.active,
+header nav a:hover {
+  background-color: #939fe2;
+  color: rgb(95, 101, 163);
+}

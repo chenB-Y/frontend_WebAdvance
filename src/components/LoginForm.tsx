@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import StudentList from './StudentList';
+import { useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -22,10 +24,13 @@ const LoginForm = () => {
       const accessToken = response.data.accessToken; // Assuming accessToken is received from server
       console.log('Response Data: ', response.data);
       localStorage.setItem('accessToken', accessToken);
-      setError(null);
+      if (response.status === 200) {
+        navigate('/students');
+      }
     } catch (err) {
       // Handle Login error
       setSuccessMessage('');
+      setError('Invalid Credentials');
     }
   };
 
@@ -61,7 +66,7 @@ const LoginForm = () => {
           login
         </button>
       </form>
-      {error && <p className="error-message">{error}</p>}
+      {error && <p className="text-danger mt-3">{error}</p>}
       {successMessage && <p className="success-message">{successMessage}</p>}
       {successMessage && <StudentList />}{' '}
     </div>

@@ -4,6 +4,7 @@ export interface IUser {
   email: string;
   password?: string;
   _id?: string;
+  imgUrl?: string;
   accessToken?: string;
   refreshToken?: string;
 }
