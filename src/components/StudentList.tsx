@@ -19,6 +19,7 @@ function StudentList() {
         console.log('Logged out');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userID');
         navigate('/login');
       }
     } catch (err) {

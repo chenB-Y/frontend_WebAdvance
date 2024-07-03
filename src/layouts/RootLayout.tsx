@@ -10,6 +10,7 @@ export default function RootLayout() {
           <NavLink to="/register">Register</NavLink>
           <NavLink to="/studentForm">addStudent</NavLink>
           <NavLink to="/students">Students</NavLink>
+          <NavLink to="/EditP">EditP</NavLink>
         </nav>
       </header>
 

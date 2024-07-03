@@ -8,6 +8,7 @@ const LoginForm = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [id] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -27,6 +28,11 @@ const LoginForm = () => {
       const refreshToken = response.data.refreshToken; // Assuming accessToken is received from server
       console.log('Response Data: ', response.data);
       localStorage.setItem('refreshToken', refreshToken);
+      // save the user data in cookies
+      document.cookie = `email=${email}`;
+      localStorage.setItem('userID', response.data.userID);
+      console.log('Response Data: ', response.data.userID);
+
       if (response.status === 200) {
         navigate('/students');
       }
@@ -52,6 +58,10 @@ const LoginForm = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
+        </div>
+        <div className="form-group">
+          <label htmlFor="id"></label>
+          <input type="" className="form-control" id="id" value={id} />
         </div>
         <div className="form-group">
           <label htmlFor="password">Password</label>
