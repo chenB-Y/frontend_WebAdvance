@@ -14,11 +14,11 @@ interface Student {
 interface StudentEditModalProps {
   student: Student;
   onClose: () => void;
+  onSave: (updatedStudent: Student) => void;
 }
 
-function StudentEditModal({ student, onClose }: StudentEditModalProps) {
-  let url = '';
-  const [imgSrc, setImgSrc] = useState<File>();
+function StudentEditModal({ student, onClose, onSave }: StudentEditModalProps) {
+  const [imgSrc, setImgSrc] = useState<File | null>(null);
   const [name, setName] = useState(student.name);
   const [age, setAge] = useState(student.age);
   const [imgUrl, setImgUrl] = useState(student.url);
@@ -27,14 +27,12 @@ function StudentEditModal({ student, onClose }: StudentEditModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const imgSelected = (e: ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.value);
     if (e.target.files && e.target.files.length > 0) {
       setImgSrc(e.target.files[0]);
     }
   };
 
   const selectImg = () => {
-    console.log('Selecting image...');
     fileInputRef.current?.click();
   };
 
@@ -45,17 +43,17 @@ function StudentEditModal({ student, onClose }: StudentEditModalProps) {
         throw new Error('Access token not found');
       }
 
+      let updatedImgUrl = imgUrl;
       if (imgSrc) {
-        url = await uploadPhoto(imgSrc!, 'product');
-        setImgUrl(url);
-        console.log('upload returned:' + imgUrl);
+        updatedImgUrl = await uploadPhoto(imgSrc, 'product');
+        setImgUrl(updatedImgUrl);
       }
 
       const updatedStudent: Student = {
         _id: student._id,
         name,
         age,
-        url: url,
+        url: updatedImgUrl,
       };
 
       const response = await axios.put(
@@ -71,6 +69,7 @@ function StudentEditModal({ student, onClose }: StudentEditModalProps) {
       if (response.status === 200) {
         setSuccessMessage('Student updated successfully!');
         setError(null);
+        onSave(updatedStudent);
         onClose();
       }
     } catch (err) {
@@ -134,7 +133,7 @@ function StudentEditModal({ student, onClose }: StudentEditModalProps) {
               ref={fileInputRef}
               type="file"
               onChange={imgSelected}
-            ></input>
+            />
             {error && <div className="alert alert-danger">{error}</div>}
             {successMessage && (
               <div className="alert alert-success">{successMessage}</div>

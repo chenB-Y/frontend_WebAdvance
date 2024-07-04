@@ -1,14 +1,25 @@
 import axios from 'axios';
 import useStudents from '../hooks/useStudents';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import StudentEditModal from './EditProduct';
-import { Student } from '../services/student-services'; // Ensure you're importing the correct Student interface
+import { Student } from '../services/student-services';
 
 function StudentList() {
-  const { students, error, loading } = useStudents();
+  const { students: initialStudents, error, loading } = useStudents();
   const navigate = useNavigate();
+  const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+
+  useEffect(() => {
+    setStudents(initialStudents || []);
+  }, [initialStudents]);
+
+  const updateStudent = (updatedStudent: Student) => {
+    setStudents(students.map(student => 
+      student._id === updatedStudent._id ? updatedStudent : student
+    ));
+  };
 
   async function logoutfunc() {
     try {
@@ -41,7 +52,7 @@ function StudentList() {
       {loading && <div className="spinner-border text-primary" />}
       {error && <div className="alert alert-danger">{error}</div>}
       <ul className="list-group">
-        {students?.map((item, index) => (
+        {students.length > 0 ? students.map((item, index) => (
           <li
             className="list-group-item d-flex justify-content-between align-items-center"
             key={index}
@@ -61,7 +72,7 @@ function StudentList() {
               Edit
             </button>
           </li>
-        ))}
+        )) : <div>No students found</div>}
       </ul>
       <button onClick={logoutfunc} className="btn btn-primary">
         Logout
@@ -71,6 +82,7 @@ function StudentList() {
         <StudentEditModal
           student={selectedStudent}
           onClose={() => setSelectedStudent(null)}
+          onSave={updateStudent}
         />
       )}
     </div>

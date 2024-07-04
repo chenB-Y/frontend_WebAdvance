@@ -3,17 +3,18 @@ import studentServices, { Student } from '../services/student-services';
 import { CanceledError } from 'axios';
 
 const useStudents = () => {
-  const [students, setStudents] = useState<Student[]>();
-  const [error, setError] = useState<string>();
+  const [students, setStudents] = useState<Student[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // const controller = new AbortController();
     setLoading(true);
     const accessToken = localStorage.getItem('accessToken');
     console.log('Access Token: ', accessToken);
     if (!accessToken) {
-      throw new Error('Access token not found');
+      setError('Access token not found');
+      setLoading(false);
+      return;
     }
     const { request, cancel } = studentServices.getAllStudent(accessToken);
     request
@@ -30,6 +31,8 @@ const useStudents = () => {
       });
     return () => cancel();
   }, []);
+
   return { students, error, loading };
 };
+
 export default useStudents;
