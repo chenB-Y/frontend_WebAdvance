@@ -13,29 +13,31 @@ const RegisterForm = () => {
   const [imgSrc, setImgSrc] = useState<File>();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState('');
-  const [username, setusername] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
 
   const imgSelected = (e: ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.value);
     if (e.target.files && e.target.files.length > 0) {
       setImgSrc(e.target.files[0]);
     }
   };
+
   const selectImg = () => {
-    console.log('Selecting image...');
     fileInputRef.current?.click();
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    try {
-      const url = await uploadPhoto(imgSrc!, 'user');
-      console.log('upload returned:' + url);
+    if (!email || !username || !password || !imgSrc) {
+      setError('Please fill in all fields and select an image.');
+      return;
+    }
 
+    try {
+      const url = await uploadPhoto(imgSrc, 'user');
       const response = await axios.post('http://localhost:3000/auth/register', {
         email: email,
         username: username,
@@ -43,14 +45,13 @@ const RegisterForm = () => {
         imgUrl: url,
       });
 
-      // Registration successful
-      const accessToken = response.data.accessToken; // Assuming accessToken is received from server
-      console.log('Response Data: ', response.data);
+      const accessToken = response.data.accessToken;
       localStorage.setItem('accessToken', accessToken);
       setSuccessMessage('Registration successful!');
       setError(null);
+      navigate('/students');
     } catch (err) {
-      // Handle registration error
+      setError('Registration failed. Please try again.');
       setSuccessMessage('');
     }
   };
@@ -60,24 +61,23 @@ const RegisterForm = () => {
   ) => {
     try {
       const res = await googleSignin(credentialResponse);
-      const accessToken = res?.accessToken; // Use optional chaining to safely access accessToken
+      const accessToken = res?.accessToken;
 
       if (accessToken) {
         localStorage.setItem('accessToken', accessToken);
-        console.log(res);
         navigate('/students');
       } else {
         throw new Error('Access token is undefined');
       }
     } catch (error) {
       console.error('Google sign-in failed:', error);
-      // Optionally, show an error message to the user
     }
   };
 
   const onGoogleLoginFailure = () => {
     console.log('Google login failed');
   };
+
   return (
     <div className="container mt-5">
       <div className="row justify-content-center">
@@ -106,7 +106,8 @@ const RegisterForm = () => {
                   ref={fileInputRef}
                   type="file"
                   onChange={imgSelected}
-                ></input>
+                />
+
                 <div className="form-group">
                   <label>Email:</label>
                   <input
@@ -118,12 +119,12 @@ const RegisterForm = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>UserName:</label>
+                  <label>Username:</label>
                   <input
-                    type="username"
+                    type="text"
                     className="form-control"
                     value={username}
-                    onChange={(e) => setusername(e.target.value)}
+                    onChange={(e) => setUsername(e.target.value)}
                     required
                   />
                 </div>
