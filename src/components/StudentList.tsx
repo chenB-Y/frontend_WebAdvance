@@ -16,9 +16,11 @@ function StudentList() {
   }, [initialStudents]);
 
   const updateStudent = (updatedStudent: Student) => {
-    setStudents(students.map(student => 
-      student._id === updatedStudent._id ? updatedStudent : student
-    ));
+    setStudents(
+      students.map((student) =>
+        student._id === updatedStudent._id ? updatedStudent : student
+      )
+    );
   };
 
   async function logoutfunc() {
@@ -52,27 +54,33 @@ function StudentList() {
       {loading && <div className="spinner-border text-primary" />}
       {error && <div className="alert alert-danger">{error}</div>}
       <ul className="list-group">
-        {students.length > 0 ? students.map((item, index) => (
-          <li
-            className="list-group-item d-flex justify-content-between align-items-center"
-            key={index}
-          >
-            <div className="d-flex align-items-center">
-              <img
-                src={item.url}
-                alt={`${item.name}'s photo`}
-                style={{ width: '50px', height: '50px', marginRight: '10px' }}
-              />
-              {item.name}
-            </div>
-            <button
-              className="btn btn-secondary btn-sm"
-              onClick={() => handleEditClick(item)}
+        {students.length > 0 ? (
+          students.map((item, index) => (
+            <li
+              className="list-group-item d-flex justify-content-between align-items-center"
+              key={index}
             >
-              Edit
-            </button>
-          </li>
-        )) : <div>No students found</div>}
+              <div className="d-flex align-items-center">
+                <img
+                  src={item.url}
+                  alt={`${item.name}'s photo`}
+                  style={{ width: '50px', height: '50px', marginRight: '10px' }}
+                />
+                {'Product name: ' + item.name}
+                <br></br>
+                {'Quantity: ' + item.age}
+              </div>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => handleEditClick(item)}
+              >
+                Edit
+              </button>
+            </li>
+          ))
+        ) : (
+          <div>No students found</div>
+        )}
       </ul>
       <button onClick={logoutfunc} className="btn btn-primary">
         Logout
