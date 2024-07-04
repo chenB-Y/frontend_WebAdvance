@@ -4,14 +4,20 @@ interface IUploadResponse {
   url: string;
 }
 
-export const uploadPhoto = async (photo: File): Promise<string> => {
+export const uploadPhoto = async (
+  photo: File,
+  type: string
+): Promise<string> => {
   return new Promise<string>((resolve, reject) => {
     console.log('Uploading photo...', photo);
     const formData = new FormData();
     if (photo) {
       formData.append('file', photo);
+      const request =
+        type === 'product' ? '/file/uploadProduct' : '/file/uploadUser';
+
       apiClient
-        .post<IUploadResponse>('/file/upload', formData, {
+        .post<IUploadResponse>(request, formData, {
           headers: {
             'Content-Type': 'multipart/form-data', // Use multipart/form-data for file uploads
           },

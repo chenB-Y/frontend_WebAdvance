@@ -33,7 +33,7 @@ const RegisterForm = () => {
     event.preventDefault();
 
     try {
-      const url = await uploadPhoto(imgSrc!);
+      const url = await uploadPhoto(imgSrc!, 'user');
       console.log('upload returned:' + url);
 
       const response = await axios.post('http://localhost:3000/auth/register', {

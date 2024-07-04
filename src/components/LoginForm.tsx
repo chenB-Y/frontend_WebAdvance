@@ -8,7 +8,6 @@ const LoginForm = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [id] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -58,10 +57,6 @@ const LoginForm = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-        </div>
-        <div className="form-group">
-          <label htmlFor="id"></label>
-          <input type="" className="form-control" id="id" value={id} />
         </div>
         <div className="form-group">
           <label htmlFor="password">Password</label>

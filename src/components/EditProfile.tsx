@@ -73,7 +73,7 @@ const EditProfile: React.FC = () => {
     try {
       // Update profile picture if a new one is selected
       if (imgSrc) {
-        url = await uploadPhoto(imgSrc!);
+        url = await uploadPhoto(imgSrc!, 'user');
         console.log('upload returned:' + url);
       }
 

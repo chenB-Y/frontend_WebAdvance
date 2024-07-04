@@ -4,6 +4,7 @@ export interface Student {
   name: string;
   age: number;
   _id: string;
+  url: string;
 }
 
 const getAllStudent = (accessToken: string) => {
@@ -18,7 +19,7 @@ const getAllStudent = (accessToken: string) => {
   return { request, cancel: () => abortController.abort() };
 };
 
-const addStudent = async (studentData: Student, accessToken: string) => {
+const addStudent = async (studentData: FormData, accessToken: string) => {
   const config: AxiosRequestConfig = {
     headers: {
       Authorization: `Bearer ${accessToken}`,
