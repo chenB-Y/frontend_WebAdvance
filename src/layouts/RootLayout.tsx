@@ -8,9 +8,10 @@ export default function RootLayout() {
           <h1>Apppppp</h1>
           <NavLink to="/login">Login</NavLink>
           <NavLink to="/register">Register</NavLink>
-          <NavLink to="/studentForm">addStudent</NavLink>
-          <NavLink to="/students">Students</NavLink>
+          <NavLink to="/productForm">addProduct</NavLink>
+          <NavLink to="/products">Products</NavLink>
           <NavLink to="/EditP">EditP</NavLink>
+          <NavLink to="/GroupForm">group</NavLink>
         </nav>
       </header>
 

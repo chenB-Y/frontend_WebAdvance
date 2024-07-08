@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import StudentList from './StudentList';
+import ProductList from './ProductList';
 import { useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
@@ -33,7 +33,7 @@ const LoginForm = () => {
       console.log('Response Data: ', response.data.userID);
 
       if (response.status === 200) {
-        navigate('/students');
+        navigate('/products');
       }
     } catch (err) {
       // Handle Login error
@@ -76,7 +76,7 @@ const LoginForm = () => {
       </form>
       {error && <p className="text-danger mt-3">{error}</p>}
       {successMessage && <p className="success-message">{successMessage}</p>}
-      {successMessage && <StudentList />}{' '}
+      {successMessage && <ProductList />}{' '}
     </div>
   );
 };

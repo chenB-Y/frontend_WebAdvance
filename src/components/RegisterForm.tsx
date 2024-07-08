@@ -49,7 +49,7 @@ const RegisterForm = () => {
       localStorage.setItem('accessToken', accessToken);
       setSuccessMessage('Registration successful!');
       setError(null);
-      navigate('/students');
+      navigate('/products');
     } catch (err) {
       setError('Registration failed. Please try again.');
       setSuccessMessage('');
@@ -65,7 +65,7 @@ const RegisterForm = () => {
 
       if (accessToken) {
         localStorage.setItem('accessToken', accessToken);
-        navigate('/students');
+        navigate('/products');
       } else {
         throw new Error('Access token is undefined');
       }

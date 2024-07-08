@@ -1,13 +1,15 @@
 import { AxiosRequestConfig } from 'axios';
 import apiClient from './api-client';
-export interface Student {
+export interface Product {
   name: string;
-  age: number;
-  _id: string;
-  url: string;
+  amount: number;
+  imageUrl: string;
+  _id?: string;
+  ownerId?: string;
+  comments?: string[];
 }
 
-const getAllStudent = (accessToken: string) => {
+const getAllProducts = (accessToken: string) => {
   const abortController = new AbortController();
   const config: AxiosRequestConfig = {
     headers: {
@@ -15,21 +17,21 @@ const getAllStudent = (accessToken: string) => {
     },
     signal: abortController.signal,
   };
-  const request = apiClient.get<Student[]>('/student', config);
+  const request = apiClient.get<Product[]>('/product', config);
   return { request, cancel: () => abortController.abort() };
 };
 
-const addStudent = async (studentData: FormData, accessToken: string) => {
+const addProduct = async (productData: FormData, accessToken: string) => {
   const config: AxiosRequestConfig = {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
   };
-  const response = await apiClient.post('/student', studentData, config);
+  const response = await apiClient.post('/product', productData, config);
   return response.data;
 };
 
 export default {
-  getAllStudent,
-  addStudent,
+  getAllProducts,
+  addProduct,
 };

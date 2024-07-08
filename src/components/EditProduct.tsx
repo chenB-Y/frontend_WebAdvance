@@ -4,24 +4,26 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faImage } from '@fortawesome/free-solid-svg-icons';
 import { uploadPhoto } from '../services/file-service';
 
-interface Student {
-  _id: string;
+interface Product {
+  _id?: string;
   name: string;
-  age: number;
-  url: string;
+  amount: number;
+  imageUrl: string;
+  ownerId?: string;
+  comments?: string[];
 }
 
-interface StudentEditModalProps {
-  student: Student;
+interface ProductEditModalProps {
+  product: Product;
   onClose: () => void;
-  onSave: (updatedStudent: Student) => void;
+  onSave: (updatedProduct: Product) => void;
 }
 
-function StudentEditModal({ student, onClose, onSave }: StudentEditModalProps) {
+function ProductEditModal({ product, onClose, onSave }: ProductEditModalProps) {
   const [imgSrc, setImgSrc] = useState<File | null>(null);
-  const [name, setName] = useState(student.name);
-  const [age, setAge] = useState(student.age);
-  const [imgUrl, setImgUrl] = useState(student.url);
+  const [name, setName] = useState(product.name);
+  const [amount, setAmount] = useState(product.amount);
+  const [imgUrl, setImgUrl] = useState(product.imageUrl);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -49,16 +51,16 @@ function StudentEditModal({ student, onClose, onSave }: StudentEditModalProps) {
         setImgUrl(updatedImgUrl);
       }
 
-      const updatedStudent: Student = {
-        _id: student._id,
+      const updatedProduct: Product = {
+        ...product,
         name,
-        age,
-        url: updatedImgUrl,
+        amount,
+        imageUrl: updatedImgUrl,
       };
 
       const response = await axios.put(
-        `http://localhost:3000/student/update-student/${student._id}`,
-        updatedStudent,
+        `http://localhost:3000/product/update-product/${product._id}`,
+        updatedProduct,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -67,14 +69,14 @@ function StudentEditModal({ student, onClose, onSave }: StudentEditModalProps) {
       );
 
       if (response.status === 200) {
-        setSuccessMessage('Student updated successfully!');
+        setSuccessMessage('Product updated successfully!');
         setError(null);
-        onSave(updatedStudent);
+        onSave(updatedProduct);
         onClose();
       }
     } catch (err) {
-      console.error('Error updating student:', err);
-      setError('Error updating student');
+      console.error('Error updating product:', err);
+      setError('Error updating product');
       setSuccessMessage('');
     }
   };
@@ -87,7 +89,7 @@ function StudentEditModal({ student, onClose, onSave }: StudentEditModalProps) {
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Edit Student</h5>
+            <h5 className="modal-title">Edit Product</h5>
             <button type="button" className="close" onClick={onClose}>
               <span>&times;</span>
             </button>
@@ -104,13 +106,13 @@ function StudentEditModal({ student, onClose, onSave }: StudentEditModalProps) {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="age">Age:</label>
+              <label htmlFor="amount">Amount:</label>
               <input
                 type="number"
-                id="age"
+                id="amount"
                 className="form-control"
-                value={age}
-                onChange={(e) => setAge(parseInt(e.target.value))}
+                value={amount}
+                onChange={(e) => setAmount(parseInt(e.target.value))}
               />
             </div>
             <div className="d-flex justify-content-center position-relative">
@@ -161,4 +163,4 @@ function StudentEditModal({ student, onClose, onSave }: StudentEditModalProps) {
   );
 }
 
-export default StudentEditModal;
+export default ProductEditModal;

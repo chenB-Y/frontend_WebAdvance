@@ -1,19 +1,3 @@
-// import LoginForm from './components/LoginForm';
-// // import RegisterForm from './components/RegisterForm';
-// // // import StudentForm from './components/StudentForm';
-// // import StudentList from './components/StudentList';
-// function App() {
-//   console.log('App');
-//   return (
-//     <div>
-//       {/* <StudentList />
-//       <RegisterForm /> */}
-//       <LoginForm />
-//     </div>
-//   );
-// }
-
-// export default App;
 
 import {
   Route,
@@ -25,19 +9,21 @@ import './App.css';
 
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
-import StudentForm from './components/StudentForm';
-import StudentList from './components/StudentList';
+import ProductForm from './components/ProductForm';
+import ProductList from './components/ProductList';
 import RootLayout from './layouts/RootLayout';
 import EditProfile from './components/EditProfile';
+import GroupForm from './components/GroupForm';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<RootLayout />}>
-      <Route index path="students" element={<StudentList />} />
+      <Route index path="products" element={<ProductList />} />
       <Route path="login" element={<LoginForm />} />
       <Route path="register" element={<RegisterForm />} />
-      <Route path="studentForm" element={<StudentForm />} />
+      <Route path="productForm" element={<ProductForm />} />
       <Route path="EditP" element={<EditProfile />} />
+      <Route path="GroupForm" element={<GroupForm/>} />
     </Route>
   )
 );

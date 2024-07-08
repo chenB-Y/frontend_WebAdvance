@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import studentServices, { Student } from '../services/student-services';
+import productServices, { Product } from '../services/product-services';
 import { CanceledError } from 'axios';
 
-const useStudents = () => {
-  const [students, setStudents] = useState<Student[]>([]);
+const useProducts = () => {
+  const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -16,11 +16,11 @@ const useStudents = () => {
       setLoading(false);
       return;
     }
-    const { request, cancel } = studentServices.getAllStudent(accessToken);
+    const { request, cancel } = productServices.getAllProducts(accessToken);
     request
       .then((response) => {
         console.log(response.data);
-        setStudents(response.data);
+        setProducts(response.data);
         setLoading(false);
       })
       .catch((error) => {
@@ -32,7 +32,7 @@ const useStudents = () => {
     return () => cancel();
   }, []);
 
-  return { students, error, loading };
+  return { products, error, loading };
 };
 
-export default useStudents;
+export default useProducts;
