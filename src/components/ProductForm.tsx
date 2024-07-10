@@ -45,42 +45,41 @@ function ProductForm() {
   };
 
   const onSubmit = async (data: FormData) => {
-    console.log("Form submitted:", data);
+    console.log('Form submitted:', data);
     try {
       const accessToken = localStorage.getItem('accessToken');
       if (!accessToken) {
         throw new Error('Access token not found');
         return;
-      }else{
-  
-      const formData = new FormData();
-      const ownerId = localStorage.getItem("userID") ?? ""; 
-      formData.append('name', data.name);
-      formData.append('amount', data.amount.toString());
-      formData.append('ownerId', ownerId);
-  
-      console.log("Selected image:", imgSrc);
-      const url = await uploadPhoto(imgSrc!, 'product');
-      console.log('upload returned:', url);
-  
-      if (imgSrc) {
-        formData.append('imageUrl', url);
+      } else {
+        const ownerId = localStorage.getItem('userID') ?? '';
+        const formData = new FormData();
+        formData.append('name', data.name);
+        formData.append('amount', data.amount.toString());
+        formData.append('ownerId', ownerId);
+
+        console.log('Selected image:', imgSrc);
+        const url = await uploadPhoto(imgSrc!, 'product');
+        console.log('upload returned:', url);
+
+        if (imgSrc) {
+          formData.append('imageUrl', url);
+        }
+
+        console.log('FormData to be sent:', formData);
+
+        const groupID = localStorage.getItem('groupID') ?? '';
+        await productServices.addProduct(formData, accessToken, groupID);
+        console.log('Product added successfully!');
+        setSuccessMessage('Product added successfully!');
+        setError(null);
       }
-  
-      console.log("FormData to be sent:", formData);
-  
-      await productServices.addProduct(formData, accessToken);
-      console.log('Product added successfully!');
-      setSuccessMessage('Product added successfully!');
-      setError(null);
-    }
     } catch (error) {
       setSuccessMessage('');
       console.error('Error adding Product:', error);
       setError('Error adding Product');
     }
   };
-  
 
   return (
     <form className="m-3" onSubmit={handleSubmit(onSubmit)}>
@@ -119,7 +118,7 @@ function ProductForm() {
 
       <div className="mb-3">
         <label htmlFor="amount" className="form-label">
-          Age:
+          Amount:
         </label>
         <input
           type="number"
@@ -127,7 +126,9 @@ function ProductForm() {
           {...register('amount', { valueAsNumber: true, min: 18 })}
           className="form-control"
         />
-        {errors.amount && <div className="text-danger">{errors.amount.message}</div>}
+        {errors.amount && (
+          <div className="text-danger">{errors.amount.message}</div>
+        )}
       </div>
 
       <button type="submit" className="btn btn-primary">

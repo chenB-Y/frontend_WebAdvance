@@ -4,13 +4,19 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faImage } from '@fortawesome/free-solid-svg-icons';
 import { uploadPhoto } from '../services/file-service';
 
-interface Product {
-  _id?: string;
+export interface Comment {
+  userId: string;
+  username: string;
+  text: string;
+}
+
+export interface Product {
+  _id: string;
   name: string;
   amount: number;
   imageUrl: string;
-  ownerId?: string;
-  comments?: string[];
+  ownerId: string;
+  comments: Comment[];
 }
 
 interface ProductEditModalProps {

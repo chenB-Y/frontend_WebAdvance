@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import ProductList from './ProductList';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const { setIsLoggedIn } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -15,35 +16,45 @@ const LoginForm = () => {
 
     try {
       const response = await axios.post('http://localhost:3000/auth/login', {
-        email: email,
-        password: password,
+        email,
+        password,
       });
-
+      console.log(response);
       // Login successful
       setSuccessMessage('Login successful!');
-      const accessToken = response.data.accessToken; // Assuming accessToken is received from server
-      console.log('Response Data: ', response.data);
+      const accessToken = response.data.accessToken;
+      const refreshToken = response.data.refreshToken;
+      const userID = response.data.userID;
+      const username = response.data.username;
+      
       localStorage.setItem('accessToken', accessToken);
-      const refreshToken = response.data.refreshToken; // Assuming accessToken is received from server
-      console.log('Response Data: ', response.data);
       localStorage.setItem('refreshToken', refreshToken);
-      // save the user data in cookies
-      document.cookie = `email=${email}`;
-      localStorage.setItem('userID', response.data.userID);
-      console.log('Response Data: ', response.data.userID);
+      localStorage.setItem('userID', userID);
+      localStorage.setItem('username', username);
 
+      // Update the login status
+      setIsLoggedIn(true);
+
+      // Navigate to products page on successful login
       if (response.status === 200) {
-        navigate('/products');
+        if (response.data.groupID) {
+          localStorage.setItem('groupID', response.data.groupID);
+          navigate('/products');
+        } else {
+          navigate('/groupForm');
+        }
+      } else {
+        setError('Invalid Credentials');
       }
     } catch (err) {
-      // Handle Login error
+      // Handle login error
       setSuccessMessage('');
       setError('Invalid Credentials');
     }
   };
 
   return (
-    <div className="LogIn-form">
+    <div className="login-form">
       <h2>Log-In</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
@@ -71,12 +82,11 @@ const LoginForm = () => {
           />
         </div>
         <button type="submit" className="btn btn-primary">
-          login
+          Login
         </button>
       </form>
       {error && <p className="text-danger mt-3">{error}</p>}
       {successMessage && <p className="success-message">{successMessage}</p>}
-      {successMessage && <ProductList />}{' '}
     </div>
   );
 };

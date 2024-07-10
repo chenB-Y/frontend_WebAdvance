@@ -49,7 +49,7 @@ const RegisterForm = () => {
       localStorage.setItem('accessToken', accessToken);
       setSuccessMessage('Registration successful!');
       setError(null);
-      navigate('/products');
+      navigate('/groupForm');
     } catch (err) {
       setError('Registration failed. Please try again.');
       setSuccessMessage('');

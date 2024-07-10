@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import '../group.css';
+import '../style/group.css';
 import apiClient from '../services/api-client';
+import { useNavigate } from 'react-router-dom';
 
 const GroupForm = () => {
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
   const [existingGroupName, setExistingGroupName] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const userID = '1456aa'; // Hardcoded for now
+    const userID = localStorage.getItem('userID');
     const groupData = { name, participants: userID };
 
     try {
@@ -17,6 +19,7 @@ const GroupForm = () => {
       setMessage('Group created successfully');
       console.log(response.data);
       setName('');
+      navigate('/products');
     } catch (error) {
       setMessage('Error creating group');
     }
@@ -25,13 +28,15 @@ const GroupForm = () => {
   const handleFetchGroup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const userid = 'err4re';
+      const userID = localStorage.getItem('userID');
+      const groupData = { name, userID: userID };
       const res = await apiClient.put(
         `/group/updateGroup/${existingGroupName}`,
-        { participants: userid }
+        groupData
       );
       console.log(res.data);
       setMessage('Group data fetched successfully');
+      navigate('/products');
     } catch (error) {
       setMessage('Error fetching group data');
     }

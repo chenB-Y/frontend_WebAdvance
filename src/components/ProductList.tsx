@@ -2,26 +2,20 @@ import axios from 'axios';
 import useProducts from '../hooks/useProducts';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import ProductEditModal from './EditProduct';
 import { Product } from '../services/product-services';
 
 function ProductList() {
-  const { products: initialProducts, error, loading } = useProducts();
+  const groupID = localStorage.getItem('groupID') ?? '';
+  const userId = localStorage.getItem('userID') ?? '';
+  const username = localStorage.getItem('username') ?? '';
+  const { products: initialProducts, error, loading } = useProducts(groupID);
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     setProducts(initialProducts || []);
   }, [initialProducts]);
-
-  const updateProduct = (updatedProduct: Product) => {
-    setProducts((prevProducts) =>
-      prevProducts.map((product) =>
-        product._id === updatedProduct._id ? updatedProduct : product
-      )
-    );
-  };
 
   async function logoutfunc() {
     try {
@@ -42,8 +36,63 @@ function ProductList() {
     }
   }
 
-  const handleEditClick = (product: Product) => {
-    setSelectedProduct(product);
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      await axios.delete(`http://localhost:3000/product/${productId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const updatedProducts = products.filter(
+        (product) => product._id !== productId
+      );
+      setProducts(updatedProducts);
+    } catch (err) {
+      console.error('Error deleting product', err);
+    }
+  };
+
+  const handleAddComment = async (productId: string) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const comment = newComment[productId];
+
+      await axios.post(
+        `http://localhost:3000/product/addComment/${productId}`,
+        { userID: userId, username: username, text: comment },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const updatedProducts = products.map((product) =>
+        product._id === productId
+          ? {
+              ...product,
+              comments: [
+                ...product.comments,
+                { userId, username, text: comment },
+              ],
+            }
+          : product
+      );
+
+      setProducts(updatedProducts);
+      setNewComment({ ...newComment, [productId]: '' });
+    } catch (err) {
+      console.error('Error adding comment', err);
+    }
+  };
+
+  const handleCommentChange = (productId: string, value: string) => {
+    setNewComment({ ...newComment, [productId]: value });
+  };
+
+  const handleViewComments = (productId: string) => {
+    navigate(`/commentsComp`, { state: { productId } });
   };
 
   return (
@@ -53,7 +102,7 @@ function ProductList() {
       {error && <div className="alert alert-danger">{error}</div>}
       <ul className="list-group">
         {products.length > 0 ? (
-          products.map((item, index) => (
+          products.map((item: Product, index: number) => (
             <li
               className="list-group-item d-flex justify-content-between align-items-center"
               key={index}
@@ -67,30 +116,51 @@ function ProductList() {
                 {`Product name: ${item.name}`}
                 <br />
                 {`Quantity: ${item.amount}`}
+                <br />
+                <input
+                  type="text"
+                  value={newComment[item._id] || ''}
+                  onChange={(e) =>
+                    handleCommentChange(item._id, e.target.value)
+                  }
+                  placeholder="Add a comment"
+                />
+                <button
+                  className="btn btn-primary btn-sm ms-2"
+                  onClick={() => handleAddComment(item._id)}
+                >
+                  Add Comment
+                </button>
               </div>
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => handleEditClick(item)}
-              >
-                Edit
-              </button>
+              <div>
+                {item.comments?.length > 0 && (
+                  <div>
+                    <strong>Comments: {item.comments.length}</strong>
+                  </div>
+                )}
+                <button
+                  className="btn btn-info btn-sm"
+                  onClick={() => handleViewComments(item._id)}
+                >
+                  View Comments
+                </button>
+                <br></br>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDeleteProduct(item._id)}
+                >
+                  Delete
+                </button>
+              </div>
             </li>
           ))
         ) : (
           <div>No products found</div>
         )}
       </ul>
-      <button onClick={logoutfunc} className="btn btn-primary">
+      <button onClick={logoutfunc} className="btn btn-primary mt-3">
         Logout
       </button>
-
-      {selectedProduct && (
-        <ProductEditModal
-          product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-          onSave={updateProduct}
-        />
-      )}
     </div>
   );
 }
