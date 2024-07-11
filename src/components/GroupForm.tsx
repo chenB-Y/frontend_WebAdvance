@@ -19,6 +19,7 @@ const GroupForm = () => {
       setMessage('Group created successfully');
       console.log(response.data);
       setName('');
+      localStorage.setItem('groupID', response.data._id);
       navigate('/products');
     } catch (error) {
       setMessage('Error creating group');
@@ -28,6 +29,7 @@ const GroupForm = () => {
   const handleFetchGroup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
+      console.log(existingGroupName);
       const userID = localStorage.getItem('userID');
       const groupData = { name, userID: userID };
       const res = await apiClient.put(
@@ -36,6 +38,7 @@ const GroupForm = () => {
       );
       console.log(res.data);
       setMessage('Group data fetched successfully');
+      localStorage.setItem('groupID', res.data._id);
       navigate('/products');
     } catch (error) {
       setMessage('Error fetching group data');

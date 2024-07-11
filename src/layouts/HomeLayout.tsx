@@ -19,6 +19,7 @@ export default function HomeLayout() {
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('userID');
         localStorage.removeItem('groupID');
+        localStorage.removeItem('username');
         setIsLoggedIn(false);
         navigate('/home');
       }

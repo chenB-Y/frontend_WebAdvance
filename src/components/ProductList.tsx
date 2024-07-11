@@ -1,7 +1,7 @@
 import axios from 'axios';
 import useProducts from '../hooks/useProducts';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Product } from '../services/product-services';
 
 function ProductList() {
@@ -12,10 +12,47 @@ function ProductList() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
+  const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     setProducts(initialProducts || []);
   }, [initialProducts]);
+
+  useEffect(() => {
+    ws.current = new WebSocket('ws://localhost:8080'); // Adjust the URL as necessary
+
+    ws.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'PRODUCT_ADDED') {
+        console.log('********************************************');
+        console.log('Product added:', data.newProduct);
+        console.log('********************************************');
+        setProducts((prevProducts) => [...prevProducts, data.newProduct]);
+      } else if (data.type === 'PRODUCT_UPDATED') {
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product._id === data.product._id ? data.product : product
+          )
+        );
+      } else if (data.type === 'PRODUCT_DELETED') {
+        setProducts((prevProducts) =>
+          prevProducts.filter((product) => product._id !== data.productId)
+        );
+      } else if (data.type === 'COMMENT_ADDED') {
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product._id === data.productId
+              ? { ...product, comments: [...product.comments, data.comment] }
+              : product
+          )
+        );
+      }
+    };
+
+    return () => {
+      ws.current?.close();
+    };
+  }, []);
 
   async function logoutfunc() {
     try {
@@ -48,6 +85,7 @@ function ProductList() {
         (product) => product._id !== productId
       );
       setProducts(updatedProducts);
+      ws.current?.send(JSON.stringify({ type: 'PRODUCT_DELETED', productId }));
     } catch (err) {
       console.error('Error deleting product', err);
     }
@@ -82,6 +120,13 @@ function ProductList() {
 
       setProducts(updatedProducts);
       setNewComment({ ...newComment, [productId]: '' });
+      ws.current?.send(
+        JSON.stringify({
+          type: 'COMMENT_ADDED',
+          productId,
+          comment: { userId, username, text: comment },
+        })
+      );
     } catch (err) {
       console.error('Error adding comment', err);
     }
@@ -144,7 +189,7 @@ function ProductList() {
                 >
                   View Comments
                 </button>
-                <br></br>
+                <br />
                 <button
                   className="btn btn-danger btn-sm"
                   onClick={() => handleDeleteProduct(item._id)}

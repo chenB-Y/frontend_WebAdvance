@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import useProductsByOwner from '../hooks/useUserProduct'; // Correct import
 import ProductEditModal from './EditProduct';
 import { Product } from '../services/product-services';
@@ -15,10 +15,35 @@ function UserProducts() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     setProducts(initialProducts || []);
   }, [initialProducts]);
+
+  useEffect(() => {
+    ws.current = new WebSocket('ws://localhost:8080'); // Adjust the URL as necessary
+
+    ws.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.type === 'PRODUCT_UPDATED') {
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product._id === data.product._id ? data.product : product
+          )
+        );
+      } else if (data.type === 'PRODUCT_DELETED') {
+        setProducts((prevProducts) =>
+          prevProducts.filter((product) => product._id !== data.productId)
+        );
+      }
+    };
+
+    return () => {
+      ws.current?.close();
+    };
+  }, []);
 
   const updateProduct = (updatedProduct: Product) => {
     setProducts((prevProducts) =>

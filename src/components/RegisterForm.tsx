@@ -7,6 +7,7 @@ import avatar from '../assets/avatar.jpeg';
 import { googleSignin } from '../services/user-services';
 import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const RegisterForm = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const RegisterForm = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const { setIsLoggedIn } = useAuth();
 
   const imgSelected = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -46,9 +48,16 @@ const RegisterForm = () => {
       });
 
       const accessToken = response.data.accessToken;
+      const refreshToken = response.data.refreshToken;
+      const userID = response.data.userID;
+      const userName = response.data.username;
       localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem('userID', userID);
+      localStorage.setItem('userName', userName);
       setSuccessMessage('Registration successful!');
       setError(null);
+      setIsLoggedIn(true);
       navigate('/groupForm');
     } catch (err) {
       setError('Registration failed. Please try again.');

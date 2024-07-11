@@ -21,22 +21,23 @@ const LoginForm = () => {
       });
       console.log(response);
       // Login successful
-      setSuccessMessage('Login successful!');
-      const accessToken = response.data.accessToken;
-      const refreshToken = response.data.refreshToken;
-      const userID = response.data.userID;
-      const username = response.data.username;
-      
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-      localStorage.setItem('userID', userID);
-      localStorage.setItem('username', username);
-
-      // Update the login status
-      setIsLoggedIn(true);
-
-      // Navigate to products page on successful login
       if (response.status === 200) {
+        setSuccessMessage('Login successful!');
+        const accessToken = response.data.accessToken;
+        const refreshToken = response.data.refreshToken;
+        const userID = response.data.userID;
+        const username = response.data.username;
+
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem('userID', userID);
+        localStorage.setItem('username', username);
+
+        // Update the login status
+        setIsLoggedIn(true);
+
+        // Navigate to products page on successful login
+
         if (response.data.groupID) {
           localStorage.setItem('groupID', response.data.groupID);
           navigate('/products');

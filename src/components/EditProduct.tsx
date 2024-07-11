@@ -52,7 +52,9 @@ function ProductEditModal({ product, onClose, onSave }: ProductEditModalProps) {
       }
 
       let updatedImgUrl = imgUrl;
+      console.log('444444545555454554545454455555544444');
       if (imgSrc) {
+        console.log('*******************Uploading image:', imgSrc);
         updatedImgUrl = await uploadPhoto(imgSrc, 'product');
         setImgUrl(updatedImgUrl);
       }
