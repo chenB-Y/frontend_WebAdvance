@@ -3,6 +3,7 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faImage } from '@fortawesome/free-solid-svg-icons';
 import { uploadPhoto } from '../services/file-service';
+import { refreshToken } from '../services/user-services';
 
 const EditProfile: React.FC = () => {
   let url = '';
@@ -37,6 +38,13 @@ const EditProfile: React.FC = () => {
   console.log('userID:', userID);
 
   const getUserData = async () => {
+    let accessToken = localStorage.getItem('accessToken');
+    const userID = localStorage.getItem('userID');
+    if (!accessToken || !userID) {
+      setError('No access token or user ID found');
+      return;
+    }
+
     try {
       const response = await axios.get(
         `http://localhost:3000/auth/getUser/${userID}`,
@@ -46,10 +54,39 @@ const EditProfile: React.FC = () => {
           },
         }
       );
+
       setUsername(response.data.username);
       setProfilePicture(response.data.imgUrl);
     } catch (err) {
-      setError('Failed to load user data. Please try again.');
+      if (
+        axios.isAxiosError(err) &&
+        err.response &&
+        err.response.status === 401
+      ) {
+        console.log('Access token expired. Attempting to refresh...');
+        try {
+          const newTokens = await refreshToken();
+          if (newTokens.accessToken && newTokens.refreshToken) {
+            accessToken = newTokens.accessToken;
+            const response = await axios.get(
+              `http://localhost:3000/auth/getUser/${userID}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              }
+            );
+
+            setUsername(response.data.username);
+            setProfilePicture(response.data.imgUrl);
+          }
+        } catch (refreshErr) {
+          console.error('Failed to refresh token:', refreshErr);
+        }
+      } else {
+        console.error('Failed to load user data:', err);
+        setError('Failed to load user data. Please try again.');
+      }
     }
   };
 

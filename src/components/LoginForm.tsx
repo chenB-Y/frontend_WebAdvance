@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { googleSignin } from '../services/user-services';
+import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -10,6 +13,45 @@ const LoginForm = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const { setIsLoggedIn } = useAuth();
   const navigate = useNavigate();
+
+  const onGoogleLoginSuccess = async (
+    credentialResponse: CredentialResponse
+  ) => {
+    try {
+      const res = await googleSignin(credentialResponse);
+
+      if (
+        res?.accessToken &&
+        res?.refreshToken &&
+        res?.userID &&
+        res?.username
+      ) {
+        localStorage.setItem('accessToken', res.accessToken);
+        localStorage.setItem('refreshToken', res.refreshToken);
+        localStorage.setItem('userID', res.userID);
+        localStorage.setItem('username', res.username);
+        setIsLoggedIn(true);
+
+        if (res.groupID) {
+          localStorage.setItem('groupID', res.groupID);
+          navigate('/products');
+        } else {
+          navigate('/groupForm');
+        }
+      } else {
+        setError('Google sign-in failed');
+        throw new Error('Access token is undefined');
+      }
+    } catch (error) {
+      console.error('Google sign-in failed:', error);
+      setError('Google sign-in failed');
+    }
+  };
+
+  const onGoogleLoginFailure = () => {
+    console.log('Google login failed');
+    setError('Google sign-in failed');
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -55,39 +97,55 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="login-form">
-      <h2>Log-In</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="email">Email address</label>
-          <input
-            type="email"
-            className="form-control"
-            id="email"
-            placeholder="Enter email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+    <div className="container mt-5">
+      <div className="row justify-content-center">
+        <div className="col-md-6">
+          <div className="card">
+            <div className="card-body">
+              <h2 className="card-title text-center mb-4">Log In</h2>
+              <form onSubmit={handleSubmit}>
+                <div className="form-group mb-3">
+                  <label htmlFor="email">Email address</label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    id="email"
+                    placeholder="Enter email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-group mb-3">
+                  <label htmlFor="password">Password</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    id="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary w-100">
+                  Login
+                </button>
+              </form>
+              {error && <p className="text-danger mt-3">{error}</p>}
+              {successMessage && (
+                <p className="text-success mt-3">{successMessage}</p>
+              )}
+              <div className="text-center mt-4">
+                <GoogleLogin
+                  onSuccess={onGoogleLoginSuccess}
+                  onError={onGoogleLoginFailure}
+                />
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            className="form-control"
-            id="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" className="btn btn-primary">
-          Login
-        </button>
-      </form>
-      {error && <p className="text-danger mt-3">{error}</p>}
-      {successMessage && <p className="success-message">{successMessage}</p>}
+      </div>
     </div>
   );
 };

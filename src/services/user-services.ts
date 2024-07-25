@@ -3,9 +3,10 @@ import { CredentialResponse } from '@react-oauth/google';
 
 export interface IUser {
   email: string;
-  password?: string;
-  _id?: string;
+  username: string;
+  userID: string;
   imgUrl?: string;
+  groupID?: string;
   accessToken?: string;
   refreshToken?: string;
 }
@@ -33,6 +34,33 @@ export const googleSignin = (credentialResponse: CredentialResponse) => {
     apiClient
       .post('/auth/google', credentialResponse)
       .then((response) => {
+        console.log(response);
+        resolve(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+        reject(error);
+      });
+  });
+};
+
+export const refreshToken = () => {
+  return new Promise<IUser>((resolve, reject) => {
+    console.log('Refreshing token...');
+    const refreshToken = localStorage.getItem('refreshToken'); // Get the refreshToken from localStorage
+    if (!refreshToken) {
+      reject(new Error('No refresh token available'));
+      return;
+    }
+    apiClient
+      .get('/auth/refresh', {
+        headers: {
+          refreshtoken: `${refreshToken}`, // Send the refreshToken
+        },
+      })
+      .then((response) => {
+        localStorage.setItem('accessToken', response.data.accessToken);
+        localStorage.setItem('refreshToken', response.data.refreshToken);
         console.log(response);
         resolve(response.data);
       })

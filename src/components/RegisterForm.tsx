@@ -70,21 +70,34 @@ const RegisterForm = () => {
   ) => {
     try {
       const res = await googleSignin(credentialResponse);
-      const accessToken = res?.accessToken;
 
-      if (accessToken) {
-        localStorage.setItem('accessToken', accessToken);
-        navigate('/products');
+      if (
+        res?.accessToken &&
+        res?.refreshToken &&
+        res?.userID &&
+        res?.username
+      ) {
+        localStorage.setItem('accessToken', res.accessToken);
+        localStorage.setItem('refreshToken', res.refreshToken);
+        localStorage.setItem('userID', res.userID);
+        localStorage.setItem('username', res.username);
+        setIsLoggedIn(true);
+        setSuccessMessage('Registration successful!');
+        setError(null);
+        navigate('/groupForm');
       } else {
+        setError('Google sign-in failed');
         throw new Error('Access token is undefined');
       }
     } catch (error) {
       console.error('Google sign-in failed:', error);
+      setError('Google sign-in failed');
     }
   };
 
   const onGoogleLoginFailure = () => {
     console.log('Google login failed');
+    setError('Google sign-in failed');
   };
 
   return (
@@ -159,6 +172,7 @@ const RegisterForm = () => {
               {successMessage && (
                 <p className="text-success mt-3">{successMessage}</p>
               )}
+              <br></br>
               <GoogleLogin
                 onSuccess={onGoogleLoginSuccess}
                 onError={onGoogleLoginFailure}
