@@ -1,8 +1,20 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import fs from 'fs';
+import path from 'path';
 
-// https://vitejs.dev/config/
+// Load SSL certificates
+const keyPath = path.resolve(__dirname, '../../client-key.pem');
+const certPath = path.resolve(__dirname, '../../client-cert.pem');
+
 export default defineConfig({
   plugins: [react()],
-  build: { rollupOptions: { input: 'main.tsx' } },
+  server: {
+    https: {
+      key: fs.readFileSync(keyPath),
+      cert: fs.readFileSync(certPath),
+    },
+    port: 443,
+    strictPort: true, // Ensure Vite uses the specified port
+  },
 });

@@ -19,14 +19,11 @@ function ProductList() {
   }, [initialProducts]);
 
   useEffect(() => {
-    ws.current = new WebSocket('ws://localhost:8080'); // Adjust the URL as necessary
+    ws.current = new WebSocket('wss://10.10.248.174:4001'); // Adjust the URL as necessary
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'PRODUCT_ADDED') {
-        console.log('********************************************');
-        console.log('Product added:', data.newProduct);
-        console.log('********************************************');
         setProducts((prevProducts) => [...prevProducts, data.newProduct]);
       } else if (data.type === 'PRODUCT_UPDATED') {
         setProducts((prevProducts) =>
@@ -57,7 +54,7 @@ function ProductList() {
   async function logoutfunc() {
     try {
       const token = localStorage.getItem('refreshToken');
-      const response = await axios.get('http://localhost:3000/auth/logout', {
+      const response = await axios.get('https://10.10.248.174:4000/auth/logout', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -76,7 +73,7 @@ function ProductList() {
   const handleDeleteProduct = async (productId: string) => {
     try {
       const token = localStorage.getItem('accessToken');
-      await axios.delete(`http://localhost:3000/product/${productId}`, {
+      await axios.delete(`https://10.10.248.174:4000/product/${productId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -97,7 +94,7 @@ function ProductList() {
       const comment = newComment[productId];
 
       await axios.post(
-        `http://localhost:3000/product/addComment/${productId}`,
+        `https://10.10.248.174:4000/product/addComment/${productId}`,
         { userID: userId, username: username, text: comment },
         {
           headers: {

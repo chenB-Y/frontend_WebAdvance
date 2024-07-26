@@ -44,17 +44,16 @@ const EditProfile: React.FC = () => {
       setError('No access token or user ID found');
       return;
     }
-
     try {
       const response = await axios.get(
-        `http://localhost:3000/auth/getUser/${userID}`,
+        `https://10.10.248.174:4000/auth/getUser/${userID}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         }
       );
-
+      console.log(response)
       setUsername(response.data.username);
       setProfilePicture(response.data.imgUrl);
     } catch (err) {
@@ -69,11 +68,12 @@ const EditProfile: React.FC = () => {
           if (newTokens.accessToken && newTokens.refreshToken) {
             accessToken = newTokens.accessToken;
             const response = await axios.get(
-              `http://localhost:3000/auth/getUser/${userID}`,
+              `https://10.10.248.174:4000/auth/getUser/${userID}`,
               {
                 headers: {
                   Authorization: `Bearer ${accessToken}`,
                 },
+                responseType: 'json' // Ensure Axios treats response as JSON
               }
             );
 
@@ -116,7 +116,7 @@ const EditProfile: React.FC = () => {
 
       // Update username
       const response = await axios.put(
-        'http://localhost:3000/auth/update-username',
+        'https://10.10.248.174:4000/auth/update-username',
         {
           userID,
           newUsername,

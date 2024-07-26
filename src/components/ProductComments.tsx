@@ -17,7 +17,7 @@ const ProductComments: React.FC = () => {
       try {
         const token = localStorage.getItem('accessToken');
         const response = await axios.get<Product>(
-          `http://localhost:3000/product/comments/${productId}`,
+          `https://10.10.248.174:4000/product/comments/${productId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

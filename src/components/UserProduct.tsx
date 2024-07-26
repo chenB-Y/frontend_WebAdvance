@@ -22,7 +22,7 @@ function UserProducts() {
   }, [initialProducts]);
 
   useEffect(() => {
-    ws.current = new WebSocket('ws://localhost:8080'); // Adjust the URL as necessary
+    ws.current = new WebSocket('wss://10.10.248.174:4001'); // Adjust the URL as necessary
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -60,7 +60,7 @@ function UserProducts() {
   const logoutfunc = async () => {
     try {
       const token = localStorage.getItem('refreshToken');
-      const response = await axios.get('http://localhost:3000/auth/logout', {
+      const response = await axios.get('https://10.10.248.174:4000/auth/logout', {
         headers: {
           Authorization: `Bearer ${token}`,
         },

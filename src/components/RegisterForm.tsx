@@ -40,7 +40,7 @@ const RegisterForm = () => {
 
     try {
       const url = await uploadPhoto(imgSrc, 'user');
-      const response = await axios.post('http://localhost:3000/auth/register', {
+      const response = await axios.post('https://10.10.248.174:4000/auth/register', {
         email: email,
         username: username,
         password: password,

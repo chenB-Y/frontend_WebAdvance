@@ -9,6 +9,7 @@ const useProducts = (groupID: string) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    console.log('PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP11111111111')
     const fetchProducts = async () => {
       setLoading(true);
       const accessToken = localStorage.getItem('accessToken');
@@ -23,6 +24,7 @@ const useProducts = (groupID: string) => {
           accessToken,
           groupID
         );
+        console.log('PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP  '+ response +'  PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP')
         console.log(response);
         setProducts(response);
       } catch (error) {

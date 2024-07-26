@@ -27,16 +27,6 @@ const getAllProducts = async (accessToken: string, groupID: string) => {
     if (response.status === 200) {
       return response.data.products;
     }
-    // if (response.status === 401) {
-    //   console.log('Unauthorized');
-    //   // refrsh token
-    //   const newToken = await refreshToken();
-    //   if (newToken.accessToken && newToken.refreshToken) {
-    //     localStorage.setItem('accessToken', newToken.accessToken);
-    //     localStorage.setItem('refreshToken', newToken.refreshToken);
-    //     getAllProducts(newToken.accessToken, groupID);
-    //   }
-    // }
   } catch (err) {
     console.log(err);
   }

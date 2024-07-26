@@ -67,7 +67,7 @@ function ProductEditModal({ product, onClose, onSave }: ProductEditModalProps) {
       };
 
       const response = await axios.put(
-        `http://localhost:3000/product/update-product/${product._id}`,
+        `https://10.10.248.174:4000/product/update-product/${product._id}`,
         updatedProduct,
         {
           headers: {
