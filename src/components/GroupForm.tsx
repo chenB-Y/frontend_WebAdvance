@@ -13,9 +13,15 @@ const GroupForm = () => {
     e.preventDefault();
     const userID = localStorage.getItem('userID');
     const groupData = { name, participants: userID };
-
+    const token = localStorage.getItem('accessToken');
     try {
-      const response = await apiClient.post('/group/createGroup', groupData);
+      const response = await apiClient.post('/group/createGroup', groupData,
+        {
+                headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setMessage('Group created successfully');
       console.log(response.data);
       setName('');

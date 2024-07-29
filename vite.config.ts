@@ -14,6 +14,7 @@ export default defineConfig({
       key: fs.readFileSync(keyPath),
       cert: fs.readFileSync(certPath),
     },
+    host: '10.10.248.174', // Set your IP address here
     port: 443,
     strictPort: true, // Ensure Vite uses the specified port
   },

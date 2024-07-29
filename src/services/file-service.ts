@@ -15,11 +15,12 @@ export const uploadPhoto = async (
       formData.append('file', photo);
       const request =
         type === 'product' ? '/file/uploadProduct' : '/file/uploadUser';
-
+        const accessToken = localStorage.getItem("accessToken")
       apiClient
         .post<IUploadResponse>(request, formData, {
           headers: {
             'Content-Type': 'multipart/form-data', // Use multipart/form-data for file uploads
+            'Authorization': `Bearer ${accessToken}`,
           },
         })
         .then((res) => {
