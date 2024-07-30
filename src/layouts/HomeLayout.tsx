@@ -70,6 +70,7 @@ export default function HomeLayout() {
               <NavLink to="/productForm">Add Product</NavLink>
               <NavLink to="/EditP">Edit Profile</NavLink>
               <NavLink to="/userProducts">My Products</NavLink>
+              <NavLink to="/recipeAPI">Recipes</NavLink>
               <button onClick={handleLogout}>Logout</button>
             </>
           ) : (

@@ -16,6 +16,7 @@ import EditProfile from './components/EditProfile';
 import GroupForm from './components/GroupForm';
 import UserProducts from './components/UserProduct';
 import ProductComment from './components/ProductComments';
+import RecipeAPI from './components/RecipeAPI';
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<HomeLayout />}>
@@ -29,6 +30,7 @@ const router = createBrowserRouter(
       <Route path="products" element={<ProductList />} />
       <Route path="userProducts" element={<UserProducts />} />
       <Route path="commentsComp" element={<ProductComment />} />
+      <Route path='recipeAPI' element={<RecipeAPI/>} />
     </Route>
   )
 );

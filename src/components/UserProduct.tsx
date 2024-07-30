@@ -22,7 +22,7 @@ function UserProducts() {
   }, [initialProducts]);
 
   useEffect(() => {
-    ws.current = new WebSocket('wss://10.10.248.174:4001'); // Adjust the URL as necessary
+    ws.current = new WebSocket('wss://10.10.248.174:4001'); 
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);

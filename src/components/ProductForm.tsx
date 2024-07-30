@@ -12,7 +12,7 @@ const schema = z.object({
   name: z.string().nonempty('Name is required'),
   amount: z
     .number({ invalid_type_error: 'Age is required' })
-    .min(18, 'You must be at least 18 years old'),
+    .min(1, 'The Product MUST be above zero!'),
   url: z.string().optional(),
 });
 
@@ -123,7 +123,7 @@ function ProductForm() {
         <input
           type="number"
           id="amount"
-          {...register('amount', { valueAsNumber: true, min: 18 })}
+          {...register('amount', { valueAsNumber: true, min: 1 })}
           className="form-control"
         />
         {errors.amount && (
