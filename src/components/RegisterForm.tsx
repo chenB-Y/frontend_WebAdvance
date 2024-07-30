@@ -1,5 +1,4 @@
 import React, { ChangeEvent, useRef, useState } from 'react';
-import axios from 'axios';
 import { uploadPhoto } from '../services/file-service';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faImage } from '@fortawesome/free-solid-svg-icons';
@@ -8,6 +7,7 @@ import { googleSignin } from '../services/user-services';
 import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import apiClient from '../services/api-client';
 
 const RegisterForm = () => {
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ const RegisterForm = () => {
 
     try {
       const url = await uploadPhoto(imgSrc, 'user');
-      const response = await axios.post('https://10.10.248.174:4000/auth/register', {
+      const response = await apiClient.post('/auth/register', {
         email: email,
         username: username,
         password: password,

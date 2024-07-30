@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { googleSignin } from '../services/user-services';
 import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import apiClient from '../services/api-client';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -57,7 +58,7 @@ const LoginForm = () => {
     event.preventDefault();
 
     try {
-      const response = await axios.post('https://10.10.248.174:4000/auth/login', {
+      const response = await apiClient.post('/auth/login', {
         email,
         password,
       });

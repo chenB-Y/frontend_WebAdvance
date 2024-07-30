@@ -1,8 +1,9 @@
-import axios from 'axios';
+
 import useProducts from '../hooks/useProducts';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { Product } from '../services/product-services';
+import apiClient from '../services/api-client';
 
 function ProductList() {
   const groupID = localStorage.getItem('groupID') ?? '';
@@ -13,67 +14,64 @@ function ProductList() {
   const [products, setProducts] = useState<Product[]>([]);
   const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
   const ws = useRef<WebSocket | null>(null);
+  const [commentCounts, setCommentCounts] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
     setProducts(initialProducts || []);
+    const initialCounts = initialProducts?.reduce((acc, product) => {
+      acc[product._id] = product.comments?.length || 0;
+      return acc;
+    }, {} as { [key: string]: number });
+    setCommentCounts(initialCounts || {});
   }, [initialProducts]);
 
-  useEffect(() => {
-    ws.current = new WebSocket('wss://10.10.248.174:4001');
+useEffect(() => {
+    const eventSource = new EventSource('https://10.10.248.174:4000/events');
 
-    ws.current.onmessage = (event) => {
+    eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === 'PRODUCT_ADDED') {
-        setProducts((prevProducts) => [...prevProducts, data.newProduct]);
-      } else if (data.type === 'PRODUCT_UPDATED') {
-        setProducts((prevProducts) =>
-          prevProducts.map((product) =>
-            product._id === data.product._id ? data.product : product
-          )
-        );
-      } else if (data.type === 'PRODUCT_DELETED') {
-        setProducts((prevProducts) =>
-          prevProducts.filter((product) => product._id !== data.productId)
-        );
-      } else if (data.type === 'COMMENT_ADDED') {
-        setProducts((prevProducts) =>
-          prevProducts.map((product) =>
-            product._id === data.productId
-              ? { ...product, comments: [...product.comments, data.comment] }
-              : product
-          )
-        );
+      switch (data.type) {
+        case 'PRODUCT_ADDED':
+          setProducts((prevProducts) => [...prevProducts, data.newProduct]);
+          break;
+        case 'PRODUCT_UPDATED':
+          setProducts((prevProducts) =>
+            prevProducts.map((product) =>
+              product._id === data.product._id ? data.product : product
+            )
+          );
+          break;
+        case 'PRODUCT_DELETED':
+          setProducts((prevProducts) =>
+            prevProducts.filter((product) => product._id !== data.productId)
+          );
+          break;
+       case 'COMMENT_ADDED':
+          setProducts((prevProducts) =>
+            prevProducts.map((product) =>
+              product._id === data.productId ? { ...product } : product
+            )
+          );
+          setCommentCounts((prevCounts) => ({
+            ...prevCounts,
+            [data.productId]: (prevCounts[data.productId] || 0) + 1
+          }));
+          break;
+        default:
+          break;
       }
     };
 
     return () => {
-      ws.current?.close();
+      eventSource.close();
     };
   }, []);
 
-  async function logoutfunc() {
-    try {
-      const token = localStorage.getItem('refreshToken');
-      const response = await axios.get('https://10.10.248.174:4000/auth/logout', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.status === 200) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('userID');
-        navigate('/login');
-      }
-    } catch (err) {
-      console.error('Logout failed', err);
-    }
-  }
 
   const handleDeleteProduct = async (productId: string) => {
     try {
       const token = localStorage.getItem('accessToken');
-      await axios.delete(`https://10.10.248.174:4000/product/${productId}`, {
+      await apiClient.delete(`/product/${productId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -93,8 +91,8 @@ function ProductList() {
       const token = localStorage.getItem('accessToken');
       const comment = newComment[productId];
 
-      await axios.post(
-        `https://10.10.248.174:4000/product/addComment/${productId}`,
+      await apiClient.post(
+        `/product/addComment/${productId}`,
         { userID: userId, username: username, text: comment },
         {
           headers: {
@@ -177,7 +175,7 @@ function ProductList() {
               <div>
                 {item.comments?.length > 0 && (
                   <div>
-                    <strong>Comments: {item.comments.length}</strong>
+                    <strong>Comments: {commentCounts[item._id] || 0}</strong>
                   </div>
                 )}
                 <button
@@ -200,9 +198,6 @@ function ProductList() {
           <div>No products found</div>
         )}
       </ul>
-      <button onClick={logoutfunc} className="btn btn-primary mt-3">
-        Logout
-      </button>
     </div>
   );
 }

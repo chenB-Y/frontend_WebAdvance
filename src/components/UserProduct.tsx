@@ -1,9 +1,7 @@
-import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import useProductsByOwner from '../hooks/useUserProduct'; // Correct import
 import ProductEditModal from './EditProduct';
 import { Product } from '../services/product-services';
-import axios from 'axios';
 
 function UserProducts() {
   const userId = localStorage.getItem('userID') ?? '';
@@ -12,7 +10,6 @@ function UserProducts() {
     error,
     loading,
   } = useProductsByOwner(userId);
-  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const ws = useRef<WebSocket | null>(null);
@@ -57,24 +54,7 @@ function UserProducts() {
     setSelectedProduct(product);
   };
 
-  const logoutfunc = async () => {
-    try {
-      const token = localStorage.getItem('refreshToken');
-      const response = await axios.get('https://10.10.248.174:4000/auth/logout', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.status === 200) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('userID');
-        navigate('/login');
-      }
-    } catch (err) {
-      console.error('Logout failed', err);
-    }
-  };
+
 
   return (
     <div>
@@ -110,9 +90,6 @@ function UserProducts() {
           <div>No products found</div>
         )}
       </ul>
-      <button onClick={logoutfunc} className="btn btn-primary">
-        Logout
-      </button>
 
       {selectedProduct && (
         <ProductEditModal

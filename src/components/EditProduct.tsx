@@ -1,8 +1,9 @@
 import { ChangeEvent, useRef, useState } from 'react';
-import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faImage } from '@fortawesome/free-solid-svg-icons';
 import { uploadPhoto } from '../services/file-service';
+import apiClient from '../services/api-client';
+import { z } from 'zod';
 
 export interface Comment {
   userId: string;
@@ -25,6 +26,8 @@ interface ProductEditModalProps {
   onSave: (updatedProduct: Product) => void;
 }
 
+const amountSchema = z.number().min(1, { message: "Amount must be greater than 0" });
+
 function ProductEditModal({ product, onClose, onSave }: ProductEditModalProps) {
   const [imgSrc, setImgSrc] = useState<File | null>(null);
   const [name, setName] = useState(product.name);
@@ -46,6 +49,9 @@ function ProductEditModal({ product, onClose, onSave }: ProductEditModalProps) {
 
   const handleSave = async () => {
     try {
+      // Validate amount with Zod
+      amountSchema.parse(amount);
+
       const token = localStorage.getItem('accessToken');
       if (!token) {
         throw new Error('Access token not found');
@@ -66,13 +72,13 @@ function ProductEditModal({ product, onClose, onSave }: ProductEditModalProps) {
         imageUrl: updatedImgUrl,
       };
 
-      const response = await axios.put(
-        `https://10.10.248.174:4000/product/update-product/${product._id}`,
+      const response = await apiClient.put(
+        `/product/update-product/${product._id}`,
         updatedProduct,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-          },
+          }
         }
       );
 
@@ -84,7 +90,7 @@ function ProductEditModal({ product, onClose, onSave }: ProductEditModalProps) {
       }
     } catch (err) {
       console.error('Error updating product:', err);
-      setError('Error updating product');
+      setError(err instanceof z.ZodError ? err.errors[0].message : 'Error updating product');
       setSuccessMessage('');
     }
   };

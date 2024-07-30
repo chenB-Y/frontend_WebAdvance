@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faImage } from '@fortawesome/free-solid-svg-icons';
 import { uploadPhoto } from '../services/file-service';
 import { refreshToken } from '../services/user-services';
+import apiClient from '../services/api-client';
 
 const EditProfile: React.FC = () => {
   let url = '';
@@ -45,8 +46,8 @@ const EditProfile: React.FC = () => {
       return;
     }
     try {
-      const response = await axios.get(
-        `https://10.10.248.174:4000/auth/getUser/${userID}`,
+      const response = await apiClient.get(
+        `/auth/getUser/${userID}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -67,8 +68,8 @@ const EditProfile: React.FC = () => {
           const newTokens = await refreshToken();
           if (newTokens.accessToken && newTokens.refreshToken) {
             accessToken = newTokens.accessToken;
-            const response = await axios.get(
-              `https://10.10.248.174:4000/auth/getUser/${userID}`,
+            const response = await apiClient.get(
+              `/auth/getUser/${userID}`,
               {
                 headers: {
                   Authorization: `Bearer ${accessToken}`,
@@ -115,8 +116,8 @@ const EditProfile: React.FC = () => {
       }
 
       // Update username
-      const response = await axios.put(
-        'https://10.10.248.174:4000/auth/update-username',
+      const response = await apiClient.put(
+        '/auth/update-username',
         {
           userID,
           newUsername,
