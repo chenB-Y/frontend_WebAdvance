@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'vite-preview',
+      name: 'frontend',
       script: 'vite',
       args: 'preview --port 443',
       env: {
