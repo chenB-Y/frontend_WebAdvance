@@ -15,6 +15,7 @@ export interface Product {
   ownerId: string;
   comments: Comment[];
 }
+
 let isRefreshing = false; // Flag to check if token refresh is in progress
 let refreshSubscribers: ((token: string) => void)[] = []; // List of pending requests
 

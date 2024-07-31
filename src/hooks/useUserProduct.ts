@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import productServices, { Product } from '../services/product-services';
 import { CanceledError } from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const useProductsByOwner = (userId: string) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -31,6 +33,7 @@ const useProductsByOwner = (userId: string) => {
       } catch (error) {
         if (error instanceof CanceledError) return;
         setError('Error fetching data');
+        navigate('/Error')
       } finally {
         setLoading(false);
       }

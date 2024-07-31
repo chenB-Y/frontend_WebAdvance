@@ -29,6 +29,7 @@ const GroupForm = () => {
       navigate('/products');
     } catch (error) {
       setMessage('Error creating group');
+      navigate('/Error')
     }
   };
 
@@ -48,6 +49,7 @@ const GroupForm = () => {
       navigate('/products');
     } catch (error) {
       setMessage('Error fetching group data');
+      navigate('/Error')
     }
   };
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import '../style/recipe.css'; // Import a CSS file for custom styling
+import { useNavigate } from 'react-router-dom';
 
 interface Recipe {
     title: string;
@@ -14,6 +15,7 @@ const RecipeFinder: React.FC = () => {
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [error, setError] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false); // Add loading state
+    const navigate = useNavigate()
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault(); // Prevent default form submission
@@ -30,9 +32,11 @@ const RecipeFinder: React.FC = () => {
             if (axios.isAxiosError(err)) {
                 setLoading(false); // End loading
                 setError(`Error fetching recipes: ${err.response?.status} ${err.response?.statusText}`);
+                navigate('/Error')
             } else {
                 setLoading(false); // End loading
                 setError('Error fetching recipes');
+                navigate('/Error')
             }
             setRecipes([]);
         }finally{

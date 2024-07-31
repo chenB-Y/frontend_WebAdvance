@@ -5,17 +5,19 @@ import { faImage } from '@fortawesome/free-solid-svg-icons';
 import { uploadPhoto } from '../services/file-service';
 import { refreshAccessToken } from '../services/user-services';
 import apiClient from '../services/api-client';
+import { useNavigate } from 'react-router-dom';
+import avatar from '../assets/avatar.jpeg';  // Import a default avatar
 
 const EditProfile: React.FC = () => {
   const [imgSrc, setImgSrc] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [username, setUsername] = useState<string>('');
-  const [profilePicture, setProfilePicture] = useState<string>('');
+  const [profilePicture, setProfilePicture] = useState<string>(avatar);  // Default avatar
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [newUsername, setNewUsername] = useState<string>(''); // State for input field
-
+  const [newUsername, setNewUsername] = useState<string>('');
+  const navigate = useNavigate();
   const accessToken = localStorage.getItem('accessToken');
   const userID = localStorage.getItem('userID');
 
@@ -32,10 +34,10 @@ const EditProfile: React.FC = () => {
     fileInputRef.current?.click();
   };
 
-  // Get user data with ID
   const getUserData = async () => {
     if (!accessToken || !userID) {
       setError('No access token or user ID found');
+      navigate('/Error');
       return;
     }
 
@@ -57,7 +59,7 @@ const EditProfile: React.FC = () => {
         if (axios.isAxiosError(err) && err.response && err.response.status === 401) {
           if (!isRefreshing) {
             isRefreshing = true;
-            setLoading(true); // Start loading indicator
+            setLoading(true);
 
             try {
               const newTokens = await refreshAccessToken();
@@ -65,15 +67,16 @@ const EditProfile: React.FC = () => {
 
               pendingRequests.forEach(callback => callback(newTokens.accessToken));
               pendingRequests = [];
-              await fetchWithToken(newTokens.accessToken); // Retry the original request
+              await fetchWithToken(newTokens.accessToken);
 
             } catch (refreshErr) {
               console.error('Failed to refresh token:', refreshErr);
               setError('Failed to refresh access token. Please log in again.');
               pendingRequests = [];
               isRefreshing = false;
+              navigate('/Error');
             } finally {
-              setLoading(false); // Stop loading indicator
+              setLoading(false);
             }
           } else {
             await new Promise<void>(resolve => {
@@ -85,6 +88,7 @@ const EditProfile: React.FC = () => {
           }
         } else {
           setError('Failed to load user data. Please try again.');
+          navigate('/Error');
         }
       }
     };
@@ -94,8 +98,9 @@ const EditProfile: React.FC = () => {
     } catch (err) {
       console.error('Failed to load user data:', err);
       setError('Failed to load user data. Please try again.');
+      navigate('/Error');
     } finally {
-      setLoading(false); // Stop loading indicator
+      setLoading(false);
     }
   };
 
@@ -118,8 +123,6 @@ const EditProfile: React.FC = () => {
 
     try {
       let url = '';
-
-      // Update profile picture if a new one is selected
       if (imgSrc) {
         url = await uploadPhoto(imgSrc, 'user');
       }
@@ -142,16 +145,17 @@ const EditProfile: React.FC = () => {
           setSuccess('Profile updated successfully!');
         } catch (err) {
           if (axios.isAxiosError(err) && err.response && err.response.status === 401) {
-            console.log('Refreshing token...');
             try {
               const newToken = await refreshAccessToken();
               await updateProfile(newToken);
             } catch (refreshErr) {
               console.error('Error refreshing token', refreshErr);
               setError('Failed to update profile. Please try again.');
+              navigate('/Error');
             }
           } else {
             setError('Failed to update profile. Please try again.');
+            navigate('/Error');
           }
         }
       };
@@ -161,30 +165,32 @@ const EditProfile: React.FC = () => {
         await updateProfile(token);
       } else {
         setError('Access token not found');
+        navigate('/Error');
       }
     } catch (err) {
       console.error('Failed to update profile:', err);
       setError('Failed to update profile. Please try again.');
+      navigate('/Error');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h1>Edit Profile</h1>
-      <h3>Hello {username}</h3>
-      {loading && <p className="loading">Loading...</p>}
-      <div className="d-flex justify-content-center position-relative">
+    <div className="container mt-5">
+      <h1 className="mb-4 text-center">Edit Profile</h1>
+      <h3 className="text-center mb-4">Hello, {username}</h3>
+      {loading && <p className="loading text-center">Loading...</p>}
+      <div className="d-flex justify-content-center position-relative mb-4">
         <img
           src={imgSrc ? URL.createObjectURL(imgSrc) : profilePicture}
-          alt="Profile Picture"
-          style={{ height: '230px', width: '230px' }}
-          className="img-fluid"
+          alt="Profile"
+          className="rounded-circle img-thumbnail"
+          style={{ height: '230px', width: '230px', objectFit: 'cover' }}
         />
         <button
           type="button"
-          className="btn position-absolute bottom-0 end-0"
+          className="btn btn-primary position-absolute bottom-0 end-0"
           onClick={selectImg}
         >
           <FontAwesomeIcon icon={faImage} className="fa-xl" />
@@ -197,11 +203,11 @@ const EditProfile: React.FC = () => {
         onChange={imgSelected}
       />
 
-      {error && <div className="alert alert-danger">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
+      {error && <div className="alert alert-danger text-center">{error}</div>}
+      {success && <div className="alert alert-success text-center">{success}</div>}
 
-      <div className="form-group">
-        <label htmlFor="username">Rename username</label>
+      <div className="form-group mb-3">
+        <label htmlFor="username" className="form-label">Rename Username</label>
         <div className="input-group">
           <input
             type="text"
@@ -214,12 +220,15 @@ const EditProfile: React.FC = () => {
         </div>
       </div>
 
-      <button
-        className="btn btn-primary"
-        onClick={handleUpdateProfile}
-        disabled={loading}
-      >
-      </button>
+      <div className="text-center">
+        <button
+          className="btn btn-success"
+          onClick={handleUpdateProfile}
+          disabled={loading}
+        >
+          Update Profile
+        </button>
+      </div>
     </div>
   );
 };

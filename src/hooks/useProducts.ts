@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import productServices, { Product } from '../services/product-services';
 import { CanceledError } from 'axios';
+import { useNavigate } from 'react-router-dom';
 //import { set } from 'react-hook-form';
 
 const useProducts = (groupID: string) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     console.log('PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP11111111111')
@@ -17,6 +19,7 @@ const useProducts = (groupID: string) => {
       if (!accessToken) {
         setError('Access token not found');
         setLoading(false);
+        navigate('/Error');
         return;
       }
       try {
@@ -32,6 +35,7 @@ const useProducts = (groupID: string) => {
         console.error('Error fetching data', error);
         setError('Error fetching data');
         setLoading(false);
+        navigate('/Error');
       } finally {
         setLoading(false);
       }

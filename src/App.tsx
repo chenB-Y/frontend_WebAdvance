@@ -17,6 +17,7 @@ import GroupForm from './components/GroupForm';
 import UserProducts from './components/UserProduct';
 import ProductComment from './components/ProductComments';
 import RecipeAPI from './components/RecipeAPI';
+import ErrorPage from './components/ErrorPage';
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<HomeLayout />}>
@@ -31,6 +32,8 @@ const router = createBrowserRouter(
       <Route path="userProducts" element={<UserProducts />} />
       <Route path="commentsComp" element={<ProductComment />} />
       <Route path='recipeAPI' element={<RecipeAPI/>} />
+      <Route path='Error' element={<ErrorPage/>}/>
+      <Route path='*' element={<ErrorPage/>}/>
     </Route>
   )
 );

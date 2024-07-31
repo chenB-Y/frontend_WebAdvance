@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { googleSignin } from '../services/user-services';
@@ -41,11 +40,13 @@ const LoginForm = () => {
         }
       } else {
         setError('Google sign-in failed');
+        navigate('/Error')
         throw new Error('Access token is undefined');
       }
     } catch (error) {
       console.error('Google sign-in failed:', error);
       setError('Google sign-in failed');
+      navigate('/Error')
     }
   };
 

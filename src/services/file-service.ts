@@ -16,12 +16,14 @@ export const uploadPhoto = (photo: File, type: string): Promise<string> => {
 
       const uploadWithToken = async (token: string) => {
         try {
+          console.log("111111111111")
           const res = await apiClient.post<IUploadResponse>(request, formData, {
             headers: {
               'Content-Type': 'multipart/form-data', // Use multipart/form-data for file uploads
               'Authorization': `Bearer ${token}`,
             },
           });
+          console.log("22222222222222222222222")
           console.log(res);
           resolve(res.data.url);
         } catch (err) {
@@ -57,6 +59,36 @@ export const uploadPhoto = (photo: File, type: string): Promise<string> => {
       };
 
       processUpload().catch(reject);
+    } else {
+      reject('No file provided');
+    }
+  });
+};
+
+
+
+export const uploadPhotoForRegister = async (
+  photo: File,
+): Promise<string> => {
+  return new Promise<string>((resolve, reject) => {
+    console.log('Uploading photo...', photo);
+    const formData = new FormData();
+    if (photo) {
+      formData.append('file', photo);
+      apiClient
+        .post<IUploadResponse>('/file/uploadUser', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data', // Use multipart/form-data for file uploads
+          },
+        })
+        .then((res) => {
+          console.log(res);
+          resolve(res.data.url);
+        })
+        .catch((err) => {
+          console.error(err);
+          reject(err);
+        });
     } else {
       reject('No file provided');
     }

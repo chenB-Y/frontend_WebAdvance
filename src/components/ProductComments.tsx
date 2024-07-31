@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Comment, Product } from '../services/product-services';
 import apiClient from '../services/api-client';
 import axios from 'axios';
@@ -14,6 +14,7 @@ const ProductComments: React.FC = () => {
   const { productId } = (location.state as LocationState) || { productId: '' };
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (!productId) return;
@@ -66,6 +67,7 @@ const fetchComments = async () => {
             } catch (refreshErr) {
               console.error('Error refreshing token', refreshErr);
               pendingRequests = [];
+              navigate('/Error');
             }
           } else {
             // Add the request to pending requests if a refresh is already in progress
@@ -77,6 +79,7 @@ const fetchComments = async () => {
             });
           }
         } else {
+          navigate('/Error')
           throw err;
         }
       }
@@ -88,6 +91,7 @@ const fetchComments = async () => {
     }
   } catch (err) {
     console.error('Error fetching comments:', err);
+    navigate('/Error')
   } finally {
     setLoading(false);
   }

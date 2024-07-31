@@ -1,0 +1,12 @@
+error-page {
+  background-color: #f8f9fa; 
+}
+
+.error-page .card {
+  border: none;
+  border-radius: 0.5rem;
+}
+
+.error-page .display-4 {
+  font-weight: 700;
+}

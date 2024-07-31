@@ -6,6 +6,7 @@ import apiClient from '../services/api-client';
 import { z } from 'zod';
 import axios from 'axios';
 import { refreshAccessToken } from '../services/user-services';
+import { useNavigate } from 'react-router-dom';
 
 export interface Comment {
   userId: string;
@@ -38,6 +39,7 @@ function ProductEditModal({ product, onClose, onSave }: ProductEditModalProps) {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   const imgSelected = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -49,75 +51,80 @@ function ProductEditModal({ product, onClose, onSave }: ProductEditModalProps) {
     fileInputRef.current?.click();
   };
 
-const handleSave = async () => {
-  try {
-    // Validate amount with Zod
-    amountSchema.parse(amount);
+  const handleSave = async () => {
+    try {
+      // Validate amount with Zod
+      amountSchema.parse(amount);
 
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      throw new Error('Access token not found');
-    }
-
-    let updatedImgUrl = imgUrl;
-    console.log('444444545555454554545454455555544444');
-    if (imgSrc) {
-      console.log('***Uploading image:', imgSrc);
-      updatedImgUrl = await uploadPhoto(imgSrc, 'product');
-      setImgUrl(updatedImgUrl);
-    }
-
-    const updatedProduct: Product = {
-      ...product,
-      name,
-      amount,
-      imageUrl: updatedImgUrl,
-    };
-
-    const saveProduct = async (token: string) => {
-      try {
-        const response = await apiClient.put(
-          `/product/update-product/${product._id}`,
-          updatedProduct,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (response.status === 200) {
-          setSuccessMessage('Product updated successfully!');
-          setError(null);
-          onSave(updatedProduct);
-          onClose();
-        } else {
-          throw new Error('Failed to update product');
-        }
-      } catch (err) {
-        if (axios.isAxiosError(err) && err.response && err.response.status === 401) {
-          console.log('Refreshing token...');
-          try {
-            const newToken = await refreshAccessToken();
-            await saveProduct(newToken);
-          } catch (refreshErr) {
-            console.error('Error refreshing token', refreshErr);
-            setError('Error updating product');
-            setSuccessMessage('');
-          }
-        } else {
-          throw err;
-        }
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        navigate('/Error')
+        throw new Error('Access token not found');
       }
-    };
 
-    await saveProduct(token);
-  } catch (err) {
-    console.error('Error updating product:', err);
-    setError(err instanceof z.ZodError ? err.errors[0].message : 'Error updating product');
-    setSuccessMessage('');
-  }
-};
+      let updatedImgUrl = imgUrl;
+      console.log('Uploading image:', imgSrc);
+      if (imgSrc) {
+        console.log('***Uploading image:', imgSrc);
+        updatedImgUrl = await uploadPhoto(imgSrc, 'product');
+        setImgUrl(updatedImgUrl);
+      }
+
+      const updatedProduct: Product = {
+        ...product,
+        name,
+        amount,
+        imageUrl: updatedImgUrl,
+      };
+
+      const saveProduct = async (token: string) => {
+        try {
+          const response = await apiClient.put(
+            `/product/update-product/${product._id}`,
+            updatedProduct,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (response.status === 200) {
+            setSuccessMessage('Product updated successfully!');
+            setError(null);
+            onSave(updatedProduct);
+            onClose();
+          } else {
+            navigate('/Error')
+            throw new Error('Failed to update product');
+          }
+        } catch (err) {
+          if (axios.isAxiosError(err) && err.response && err.response.status === 401) {
+            console.log('Refreshing token...');
+            try {
+              const newToken = await refreshAccessToken();
+              await saveProduct(newToken);
+            } catch (refreshErr) {
+              console.error('Error refreshing token', refreshErr);
+              setError('Error updating product');
+              setSuccessMessage('');
+              navigate('/Error')
+            }
+          } else {
+            navigate('/Error')
+            throw err;
+          }
+        }
+      };
+
+      await saveProduct(token);
+    } catch (err) {
+      navigate('/Error')
+      console.error('Error updating product:', err);
+      setError(err instanceof z.ZodError ? err.errors[0].message : 'Error updating product');
+      setSuccessMessage('');
+    }
+  };
 
   return (
     <div
@@ -128,9 +135,7 @@ const handleSave = async () => {
         <div className="modal-content">
           <div className="modal-header">
             <h5 className="modal-title">Edit Product</h5>
-            <button type="button" className="close" onClick={onClose}>
-              <span>&times;</span>
-            </button>
+            <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
           <div className="modal-body">
             <div className="form-group">
@@ -153,10 +158,10 @@ const handleSave = async () => {
                 onChange={(e) => setAmount(parseInt(e.target.value))}
               />
             </div>
-            <div className="d-flex justify-content-center position-relative">
+            <div className="d-flex justify-content-center position-relative my-3">
               <img
                 src={imgSrc ? URL.createObjectURL(imgSrc) : imgUrl}
-                style={{ height: '230px', width: '230px' }}
+                style={{ height: '230px', width: '230px', objectFit: 'cover', borderRadius: '50%' }}
                 className="img-fluid"
               />
               <button

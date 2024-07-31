@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useRef, useState } from 'react';
-import { uploadPhoto } from '../services/file-service';
+import { uploadPhotoForRegister } from '../services/file-service';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faImage } from '@fortawesome/free-solid-svg-icons';
 import avatar from '../assets/avatar.jpeg';
@@ -39,14 +39,16 @@ const RegisterForm = () => {
     }
 
     try {
-      const url = await uploadPhoto(imgSrc, 'user');
+      console.log("11111111111111111111111111111111111111111111111111111")
+      const url = await uploadPhotoForRegister(imgSrc);
+      console.log("2222222222222222222222222222222222222222222222222222222222")
       const response = await apiClient.post('/auth/register', {
         email: email,
         username: username,
         password: password,
         imgUrl: url,
       });
-
+      console.log("333333333333333333333333333333333333333333333333")
       const accessToken = response.data.accessToken;
       const refreshToken = response.data.refreshToken;
       const userID = response.data.userID;
@@ -54,7 +56,7 @@ const RegisterForm = () => {
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('userID', userID);
-      localStorage.setItem('userName', userName);
+      localStorage.setItem('username', userName);
       setSuccessMessage('Registration successful!');
       setError(null);
       setIsLoggedIn(true);
