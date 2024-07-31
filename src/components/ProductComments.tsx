@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Comment, Product } from '../services/product-services';
 import apiClient from '../services/api-client';
+import axios from 'axios';
+import { refreshAccessToken } from '../services/user-services';
 
 interface LocationState {
   productId: string;
@@ -30,10 +32,16 @@ const ProductComments: React.FC = () => {
     };
   }, [productId]);
 
+let isRefreshing = false;
+let pendingRequests: Array<(token: string) => void> = [];
+
   useEffect(() => {
-    const fetchComments = async () => {
+
+const fetchComments = async () => {
+  setLoading(true);
+  try {
+    const fetchWithToken = async (token: string) => {
       try {
-        const token = localStorage.getItem('accessToken');
         const response = await apiClient.get<Product>(
           `/product/comments/${productId}`,
           {
@@ -44,12 +52,46 @@ const ProductComments: React.FC = () => {
         );
         console.log('Comments:', response.data.comments);
         setComments(response.data.comments);
-      } catch (error) {
-        console.error('Error fetching comments:', error);
-      } finally {
-        setLoading(false);
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response && err.response.status === 401) {
+          if (!isRefreshing) {
+            isRefreshing = true;
+            try {
+              const newToken = await refreshAccessToken();
+              isRefreshing = false;
+              // Retry all pending requests with the new token
+              pendingRequests.forEach(callback => callback(newToken));
+              pendingRequests = [];
+              await fetchWithToken(newToken); // Retry the original request
+            } catch (refreshErr) {
+              console.error('Error refreshing token', refreshErr);
+              pendingRequests = [];
+            }
+          } else {
+            // Add the request to pending requests if a refresh is already in progress
+            await new Promise<void>(resolve => {
+              pendingRequests.push(async (newToken) => {
+                await fetchWithToken(newToken);
+                resolve();
+              });
+            });
+          }
+        } else {
+          throw err;
+        }
       }
     };
+
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      await fetchWithToken(token);
+    }
+  } catch (err) {
+    console.error('Error fetching comments:', err);
+  } finally {
+    setLoading(false);
+  }
+};
 
     if (productId) {
       fetchComments();

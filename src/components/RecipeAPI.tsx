@@ -13,7 +13,7 @@ const RecipeFinder: React.FC = () => {
     const [query, setQuery] = useState<string>('');
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [error, setError] = useState<string>('');
-     const [loading, setLoading] = useState<boolean>(false); // Add loading state
+    const [loading, setLoading] = useState<boolean>(false); // Add loading state
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault(); // Prevent default form submission

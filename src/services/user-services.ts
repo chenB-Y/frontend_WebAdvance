@@ -44,29 +44,22 @@ export const googleSignin = (credentialResponse: CredentialResponse) => {
   });
 };
 
-export const refreshToken = () => {
-  return new Promise<IUser>((resolve, reject) => {
-    console.log('Refreshing token...');
-    const refreshToken = localStorage.getItem('refreshToken'); // Get the refreshToken from localStorage
-    if (!refreshToken) {
-      reject(new Error('No refresh token available'));
-      return;
-    }
-    apiClient
-      .get('/auth/refresh', {
-        headers: {
-          refreshtoken: `${refreshToken}`, // Send the refreshToken
-        },
-      })
-      .then((response) => {
-        localStorage.setItem('accessToken', response.data.accessToken);
-        localStorage.setItem('refreshToken', response.data.refreshToken);
-        console.log(response);
-        resolve(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-        reject(error);
-      });
+export const refreshAccessToken = async () => {
+  const refreshT = localStorage.getItem('refreshToken');
+  if (!refreshT) {
+    throw new Error('No refresh token available');
+  }
+
+  const response = await apiClient.get('/auth/refresh', {
+    headers: {
+      refreshtoken: refreshT,
+    },
   });
+
+  const { accessToken, refreshToken } = response.data;
+  localStorage.removeItem('accessToken')
+  localStorage.removeItem('refreshToken')
+  localStorage.setItem('accessToken', accessToken);
+  localStorage.setItem('refreshToken', refreshToken)
+  return accessToken;
 };

@@ -4,6 +4,8 @@ import { faImage } from '@fortawesome/free-solid-svg-icons';
 import { uploadPhoto } from '../services/file-service';
 import apiClient from '../services/api-client';
 import { z } from 'zod';
+import axios from 'axios';
+import { refreshAccessToken } from '../services/user-services';
 
 export interface Comment {
   userId: string;
@@ -47,53 +49,75 @@ function ProductEditModal({ product, onClose, onSave }: ProductEditModalProps) {
     fileInputRef.current?.click();
   };
 
-  const handleSave = async () => {
-    try {
-      // Validate amount with Zod
-      amountSchema.parse(amount);
+const handleSave = async () => {
+  try {
+    // Validate amount with Zod
+    amountSchema.parse(amount);
 
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        throw new Error('Access token not found');
-      }
-
-      let updatedImgUrl = imgUrl;
-      console.log('444444545555454554545454455555544444');
-      if (imgSrc) {
-        console.log('*******************Uploading image:', imgSrc);
-        updatedImgUrl = await uploadPhoto(imgSrc, 'product');
-        setImgUrl(updatedImgUrl);
-      }
-
-      const updatedProduct: Product = {
-        ...product,
-        name,
-        amount,
-        imageUrl: updatedImgUrl,
-      };
-
-      const response = await apiClient.put(
-        `/product/update-product/${product._id}`,
-        updatedProduct,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          }
-        }
-      );
-
-      if (response.status === 200) {
-        setSuccessMessage('Product updated successfully!');
-        setError(null);
-        onSave(updatedProduct);
-        onClose();
-      }
-    } catch (err) {
-      console.error('Error updating product:', err);
-      setError(err instanceof z.ZodError ? err.errors[0].message : 'Error updating product');
-      setSuccessMessage('');
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      throw new Error('Access token not found');
     }
-  };
+
+    let updatedImgUrl = imgUrl;
+    console.log('444444545555454554545454455555544444');
+    if (imgSrc) {
+      console.log('***Uploading image:', imgSrc);
+      updatedImgUrl = await uploadPhoto(imgSrc, 'product');
+      setImgUrl(updatedImgUrl);
+    }
+
+    const updatedProduct: Product = {
+      ...product,
+      name,
+      amount,
+      imageUrl: updatedImgUrl,
+    };
+
+    const saveProduct = async (token: string) => {
+      try {
+        const response = await apiClient.put(
+          `/product/update-product/${product._id}`,
+          updatedProduct,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          setSuccessMessage('Product updated successfully!');
+          setError(null);
+          onSave(updatedProduct);
+          onClose();
+        } else {
+          throw new Error('Failed to update product');
+        }
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response && err.response.status === 401) {
+          console.log('Refreshing token...');
+          try {
+            const newToken = await refreshAccessToken();
+            await saveProduct(newToken);
+          } catch (refreshErr) {
+            console.error('Error refreshing token', refreshErr);
+            setError('Error updating product');
+            setSuccessMessage('');
+          }
+        } else {
+          throw err;
+        }
+      }
+    };
+
+    await saveProduct(token);
+  } catch (err) {
+    console.error('Error updating product:', err);
+    setError(err instanceof z.ZodError ? err.errors[0].message : 'Error updating product');
+    setSuccessMessage('');
+  }
+};
 
   return (
     <div

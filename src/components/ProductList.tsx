@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { Product } from '../services/product-services';
 import apiClient from '../services/api-client';
+import {refreshAccessToken} from '../services/user-services'
+import axios from 'axios';
 
 function ProductList() {
   const groupID = localStorage.getItem('groupID') ?? '';
@@ -68,64 +70,125 @@ useEffect(() => {
   }, []);
 
 
-  const handleDeleteProduct = async (productId: string) => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      await apiClient.delete(`/product/${productId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const updatedProducts = products.filter(
-        (product) => product._id !== productId
-      );
-      setProducts(updatedProducts);
-      ws.current?.send(JSON.stringify({ type: 'PRODUCT_DELETED', productId }));
-    } catch (err) {
-      console.error('Error deleting product', err);
-    }
-  };
-
-  const handleAddComment = async (productId: string) => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      const comment = newComment[productId];
-
-      await apiClient.post(
-        `/product/addComment/${productId}`,
-        { userID: userId, username: username, text: comment },
-        {
+const handleDeleteProduct = async (productId: string) => {
+  try {
+    const deleteWithToken = async (token: string) => {
+      try {
+        await apiClient.delete(`/product/${productId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+        });
+        const updatedProducts = products.filter(
+          (product) => product._id !== productId
+        );
+        setProducts(updatedProducts);
+        ws.current?.send(JSON.stringify({ type: 'PRODUCT_DELETED', productId }));
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response && err.response.status === 401) {
+          console.log('Refreshing token...');
+          try {
+            const newToken = await refreshAccessToken();
+            await deleteWithToken(newToken); // Retry the delete request with the new token
+          } catch (refreshErr) {
+            console.error('Error refreshing token', refreshErr);
+          }
+        } else {
+          throw err; // Re-throw if it's not a token error
         }
-      );
+      }
+    };
 
-      const updatedProducts = products.map((product) =>
-        product._id === productId
-          ? {
-              ...product,
-              comments: [
-                ...product.comments,
-                { userId, username, text: comment },
-              ],
-            }
-          : product
-      );
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      await deleteWithToken(token);
+    }
+  } catch (err) {
+    console.error('Error deleting product', err);
+  }
+};
 
-      setProducts(updatedProducts);
-      setNewComment({ ...newComment, [productId]: '' });
-      ws.current?.send(
-        JSON.stringify({
-          type: 'COMMENT_ADDED',
-          productId,
-          comment: { userId, username, text: comment },
-        })
-      );
-    } catch (err) {
+const handleAddComment = async (productId: string) => {
+  try {
+    const token = localStorage.getItem('accessToken');
+    const comment = newComment[productId];
+
+    await apiClient.post(
+      `/product/addComment/${productId}`,
+      { userID: userId, username: username, text: comment },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const updatedProducts = products.map((product) =>
+      product._id === productId
+        ? {
+            ...product,
+            comments: [
+              ...product.comments,
+              { userId, username, text: comment },
+            ],
+          }
+        : product
+    );
+
+    setProducts(updatedProducts);
+    setNewComment({ ...newComment, [productId]: '' });
+    ws.current?.send(
+      JSON.stringify({
+        type: 'COMMENT_ADDED',
+        productId,
+        comment: { userId, username, text: comment },
+      })
+    );
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response && err.response.status === 401) {
+      try {
+        const newToken = await refreshAccessToken();
+        const comment = newComment[productId];
+
+        await apiClient.post(
+          `/product/addComment/${productId}`,
+          { userID: userId, username: username, text: comment },
+          {
+            headers: {
+              Authorization: `Bearer ${newToken}`,
+            },
+          }
+        );
+
+        const updatedProducts = products.map((product) =>
+          product._id === productId
+            ? {
+                ...product,
+                comments: [
+                  ...product.comments,
+                  { userId, username, text: comment },
+                ],
+              }
+            : product
+        );
+
+        setProducts(updatedProducts);
+        setNewComment({ ...newComment, [productId]: '' });
+        ws.current?.send(
+          JSON.stringify({
+            type: 'COMMENT_ADDED',
+            productId,
+            comment: { userId, username, text: comment },
+          })
+        );
+      } catch (refreshErr) {
+        console.error('Error refreshing token', refreshErr);
+      }
+    } else {
       console.error('Error adding comment', err);
     }
-  };
+  }
+};
 
   const handleCommentChange = (productId: string, value: string) => {
     setNewComment({ ...newComment, [productId]: value });

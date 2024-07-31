@@ -3,12 +3,11 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faImage } from '@fortawesome/free-solid-svg-icons';
 import { uploadPhoto } from '../services/file-service';
-import { refreshToken } from '../services/user-services';
+import { refreshAccessToken } from '../services/user-services';
 import apiClient from '../services/api-client';
 
 const EditProfile: React.FC = () => {
-  let url = '';
-  const [imgSrc, setImgSrc] = useState<File>();
+  const [imgSrc, setImgSrc] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [username, setUsername] = useState<string>('');
   const [profilePicture, setProfilePicture] = useState<string>('');
@@ -16,78 +15,87 @@ const EditProfile: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [newUsername, setNewUsername] = useState<string>(''); // State for input field
+
   const accessToken = localStorage.getItem('accessToken');
-  console.log('Access Token: ', accessToken);
-  if (!accessToken) {
-    throw new Error('Access token not found');
-  }
+  const userID = localStorage.getItem('userID');
+
+  let isRefreshing = false;
+  let pendingRequests: Array<(token: string) => void> = [];
 
   const imgSelected = (e: ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.value);
     if (e.target.files && e.target.files.length > 0) {
       setImgSrc(e.target.files[0]);
     }
   };
 
   const selectImg = () => {
-    console.log('Selecting image...');
     fileInputRef.current?.click();
   };
 
   // Get user data with ID
-  const userID = localStorage.getItem('userID');
-  console.log('userID:', userID);
-
   const getUserData = async () => {
-    let accessToken = localStorage.getItem('accessToken');
-    const userID = localStorage.getItem('userID');
     if (!accessToken || !userID) {
       setError('No access token or user ID found');
       return;
     }
-    try {
-      const response = await apiClient.get(
-        `/auth/getUser/${userID}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-      console.log(response)
-      setUsername(response.data.username);
-      setProfilePicture(response.data.imgUrl);
-    } catch (err) {
-      if (
-        axios.isAxiosError(err) &&
-        err.response &&
-        err.response.status === 401
-      ) {
-        console.log('Access token expired. Attempting to refresh...');
-        try {
-          const newTokens = await refreshToken();
-          if (newTokens.accessToken && newTokens.refreshToken) {
-            accessToken = newTokens.accessToken;
-            const response = await apiClient.get(
-              `/auth/getUser/${userID}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                },
-                responseType: 'json' // Ensure Axios treats response as JSON
-              }
-            );
 
-            setUsername(response.data.username);
-            setProfilePicture(response.data.imgUrl);
+    const fetchWithToken = async (token: string) => {
+      try {
+        const response = await apiClient.get(
+          `/auth/getUser/${userID}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            responseType: 'json',
           }
-        } catch (refreshErr) {
-          console.error('Failed to refresh token:', refreshErr);
+        );
+
+        setUsername(response.data.username);
+        setProfilePicture(response.data.imgUrl);
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response && err.response.status === 401) {
+          if (!isRefreshing) {
+            isRefreshing = true;
+            setLoading(true); // Start loading indicator
+
+            try {
+              const newTokens = await refreshAccessToken();
+              isRefreshing = false;
+
+              pendingRequests.forEach(callback => callback(newTokens.accessToken));
+              pendingRequests = [];
+              await fetchWithToken(newTokens.accessToken); // Retry the original request
+
+            } catch (refreshErr) {
+              console.error('Failed to refresh token:', refreshErr);
+              setError('Failed to refresh access token. Please log in again.');
+              pendingRequests = [];
+              isRefreshing = false;
+            } finally {
+              setLoading(false); // Stop loading indicator
+            }
+          } else {
+            await new Promise<void>(resolve => {
+              pendingRequests.push(async (newToken) => {
+                await fetchWithToken(newToken);
+                resolve();
+              });
+            });
+          }
+        } else {
+          setError('Failed to load user data. Please try again.');
         }
-      } else {
-        console.error('Failed to load user data:', err);
-        setError('Failed to load user data. Please try again.');
       }
+    };
+
+    try {
+      await fetchWithToken(accessToken);
+    } catch (err) {
+      console.error('Failed to load user data:', err);
+      setError('Failed to load user data. Please try again.');
+    } finally {
+      setLoading(false); // Stop loading indicator
     }
   };
 
@@ -96,12 +104,12 @@ const EditProfile: React.FC = () => {
   }, []);
 
   const handleUsernameChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setNewUsername(e.target.value); // Update local state on input change
+    setNewUsername(e.target.value);
   };
 
   const handleUpdateProfile = async () => {
     if (newUsername) {
-      setUsername(newUsername); // Update username state with new input value
+      setUsername(newUsername);
     }
     setNewUsername('');
     setLoading(true);
@@ -109,29 +117,53 @@ const EditProfile: React.FC = () => {
     setSuccess(null);
 
     try {
+      let url = '';
+
       // Update profile picture if a new one is selected
       if (imgSrc) {
-        url = await uploadPhoto(imgSrc!, 'user');
-        console.log('upload returned:' + url);
+        url = await uploadPhoto(imgSrc, 'user');
       }
 
-      // Update username
-      const response = await apiClient.put(
-        '/auth/update-username',
-        {
-          userID,
-          newUsername,
-          url,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+      const updateProfile = async (token: string) => {
+        try {
+          await apiClient.put(
+            '/auth/update-username',
+            {
+              userID,
+              newUsername,
+              url,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          setSuccess('Profile updated successfully!');
+        } catch (err) {
+          if (axios.isAxiosError(err) && err.response && err.response.status === 401) {
+            console.log('Refreshing token...');
+            try {
+              const newToken = await refreshAccessToken();
+              await updateProfile(newToken);
+            } catch (refreshErr) {
+              console.error('Error refreshing token', refreshErr);
+              setError('Failed to update profile. Please try again.');
+            }
+          } else {
+            setError('Failed to update profile. Please try again.');
+          }
         }
-      );
-      console.log('Response Data: ', response.data);
-      setSuccess('Profile updated successfully!');
+      };
+
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        await updateProfile(token);
+      } else {
+        setError('Access token not found');
+      }
     } catch (err) {
+      console.error('Failed to update profile:', err);
       setError('Failed to update profile. Please try again.');
     } finally {
       setLoading(false);
@@ -142,6 +174,7 @@ const EditProfile: React.FC = () => {
     <div>
       <h1>Edit Profile</h1>
       <h3>Hello {username}</h3>
+      {loading && <p className="loading">Loading...</p>}
       <div className="d-flex justify-content-center position-relative">
         <img
           src={imgSrc ? URL.createObjectURL(imgSrc) : profilePicture}
@@ -186,7 +219,6 @@ const EditProfile: React.FC = () => {
         onClick={handleUpdateProfile}
         disabled={loading}
       >
-        {loading ? 'Updating...' : 'Update Profile'}
       </button>
     </div>
   );
