@@ -33,7 +33,7 @@ function ProductList() {
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
       switch (data.type) {
-        case 'PRODUCT_ADDED':
+        case `PRODUCT_ADDED:${groupID}`:
           setProducts((prevProducts) => [...prevProducts, data.newProduct]);
           break;
         case 'PRODUCT_UPDATED':
