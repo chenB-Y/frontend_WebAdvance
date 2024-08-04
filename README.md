@@ -44,10 +44,6 @@ The frontend application includes a range of features designed to enhance user e
 - **Profile Management**: Users can manage their profiles, including updating personal information and changing their profile photo.
 - **Recipe API Integration**: Connects to an external recipe API to fetch and display recipes for various dishes, enhancing the shopping experience.
 
-## Production Setup
-
-For production, the frontend application is managed using PM2. This tool ensures that the application is monitored and maintained for optimal performance and reliability.
-
 ## Getting Started
 
 To get started with the frontend application:
@@ -59,7 +55,10 @@ To get started with the frontend application:
 5. For production, build the application with `npm run build` or `yarn build`, and start it with PM2.
 
 ### Production
-The frontend is managed with PM2 for production to ensure smooth deployment and operation.
+For production, the frontend application is managed using PM2. This tool ensures that the application is monitored and maintained for optimal performance and reliability.
+```sh
+npm run prod
+```
 
 ### Complete Application
 The Shopping List App combines both the backend and frontend components to provide a full-featured shopping management system. By integrating these parts, users benefit from a cohesive and efficient application for managing their shopping needs.
