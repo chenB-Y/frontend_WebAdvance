@@ -58,6 +58,12 @@ To get started with the frontend application:
 4. Run the development server with `npm run dev` or `yarn dev`.
 5. For production, build the application with `npm run build` or `yarn build`, and start it with PM2.
 
+### Complete Application
+The Shopping List App combines both the backend and frontend components to provide a full-featured shopping management system. By integrating these parts, users benefit from a cohesive and efficient application for managing their shopping needs.
+```sh
+git@github.com:chenB-Y/backend_WebAdvance.git
+```
+
 ## Contributing
 
 Contributions are welcome! If you have suggestions or improvements, please open an issue or submit a pull request.
