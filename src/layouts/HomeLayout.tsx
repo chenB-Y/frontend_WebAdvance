@@ -72,7 +72,7 @@ export default function HomeLayout() {
     <div className="root-layout">
       <header>
         <nav>
-          <h1>NameOfTheAPP</h1>
+          <h1>ShoppingList</h1>
           {isLoggedIn ? (
             <>
               <NavLink to="/products">Products</NavLink>
