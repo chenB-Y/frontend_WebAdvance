@@ -1,4 +1,4 @@
-# Frontend Application
+# Shopping List App - Frontend
 
 Welcome to the frontend of the shopping list application! This project is built using React and Vite, leveraging TypeScript for type safety and enhanced development experience.
 
